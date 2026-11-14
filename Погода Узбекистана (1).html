@@ -1,0 +1,1563 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Погода Узбекистана</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=Unbounded:wght@500;600&display=swap">
+<style>
+/* Layout: sticky toolbar, pill tab rail, scrolling city strip, then one panel grid per tab. Tilework palette (Registan turquoise, saffron sun). */
+:root{
+  --bg:#EDF2F4;--panel:#FFFFFF;--panel-2:#E5ECEF;--ink:#0E2230;--ink-2:#506878;--line:#D2DDE2;
+  --accent:#0A7480;--accent-ink:#FFFFFF;--accent-soft:#D3ECEF;
+  --sun:#F0A020;--moon:#C3D0DE;--cloud:#B7C5D1;--cloud-d:#7F93A4;--rain:#2C7BD0;--snow:#6FB0E8;
+  --good:#1D8A4C;--warn:#B86E00;--bad:#C4272C;
+  --s1:#0A7480;--s2:#D9641A;--s3:#5A4BC8;--s4:#C2255C;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' fill='none' stroke='%230A7480' stroke-opacity='.16'%3E%3Crect x='14' y='14' width='20' height='20' transform='rotate(45 24 24)'/%3E%3C/svg%3E");
+  --fd:'Unbounded','Golos Text',system-ui,sans-serif;
+  --fb:'Golos Text',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#08141B;--panel:#0F222D;--panel-2:#16303D;--ink:#E6EFF3;--ink-2:#9AB2C0;--line:#22414F;
+  --accent:#4CC2CE;--accent-ink:#04222A;--accent-soft:#103F48;
+  --sun:#F5B23A;--moon:#D5E0EC;--cloud:#8EA2B2;--cloud-d:#667C8E;--rain:#5BA4F0;--snow:#9CCBF3;
+  --good:#4CC77F;--warn:#F0A63A;--bad:#FF6B6F;
+  --s1:#4CC2CE;--s2:#FF9F5A;--s3:#A99CFF;--s4:#FF7AA8;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' fill='none' stroke='%234CC2CE' stroke-opacity='.14'%3E%3Crect x='14' y='14' width='20' height='20' transform='rotate(45 24 24)'/%3E%3C/svg%3E");
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#08141B;--panel:#0F222D;--panel-2:#16303D;--ink:#E6EFF3;--ink-2:#9AB2C0;--line:#22414F;
+  --accent:#4CC2CE;--accent-ink:#04222A;--accent-soft:#103F48;
+  --sun:#F5B23A;--moon:#D5E0EC;--cloud:#8EA2B2;--cloud-d:#667C8E;--rain:#5BA4F0;--snow:#9CCBF3;
+  --good:#4CC77F;--warn:#F0A63A;--bad:#FF6B6F;
+  --s1:#4CC2CE;--s2:#FF9F5A;--s3:#A99CFF;--s4:#FF7AA8;
+  --pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48' fill='none' stroke='%234CC2CE' stroke-opacity='.14'%3E%3Crect x='14' y='14' width='20' height='20' transform='rotate(45 24 24)'/%3E%3C/svg%3E");
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--fb);margin:0;
+  padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-text-size-adjust:100%;font-variant-numeric:tabular-nums}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:60}
+.wrap{max-width:1180px;margin:0 auto}
+h1,h2,h3,p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+svg{display:block}
+
+/* toolbar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--bg);
+  display:flex;flex-wrap:wrap;gap:10px 12px;align-items:center;padding-block:12px 8px}
+.brand{display:flex;gap:10px;align-items:center;color:inherit;text-decoration:none;min-width:0}
+.brand svg{flex:none}
+.brand b{display:block;font:600 14.5px/1.2 var(--fd);letter-spacing:.01em}
+.brand small{display:block;color:var(--ink-2);font-size:12px;line-height:1.3}
+.search{position:relative;flex:1 1 230px;min-width:0;max-width:440px}
+.search input{width:100%;height:42px;padding:0 14px 0 40px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
+.search .si{position:absolute;left:13px;top:12px;color:var(--ink-2);pointer-events:none}
+.sugg{position:absolute;left:0;right:0;top:48px;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;z-index:70;max-height:340px;overflow-y:auto;box-shadow:0 12px 32px rgba(8,20,27,.18)}
+.sugg button{display:flex;width:100%;justify-content:space-between;gap:10px;padding:10px 14px;background:none;border:0;text-align:left;align-items:center}
+.sugg button small{color:var(--ink-2);font-size:12.5px}
+.sugg button[aria-selected="true"],.sugg button:hover{background:var(--accent-soft)}
+.sugg p{padding:12px 14px;color:var(--ink-2)}
+.ctrls{display:flex;gap:8px;align-items:center;margin-left:auto;position:relative}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;background:var(--panel);padding:2px;max-width:100%}
+.seg button{border:0;background:none;color:var(--ink-2);font:600 12.5px var(--fb);padding:6px 11px;border-radius:999px;min-height:34px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.ibtn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--ink);display:grid;place-items:center;flex:none}
+.ibtn:hover{border-color:var(--accent)}
+.pop{position:absolute;right:0;top:50px;width:min(330px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;z-index:70;display:grid;gap:12px;box-shadow:0 12px 32px rgba(8,20,27,.18)}
+.pop label{display:block;font:600 11.5px var(--fb);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:6px}
+.pop .seg{display:flex}.pop .seg button{flex:1}
+
+/* tabs and city strip */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-block:4px 10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar,.strip::-webkit-scrollbar{display:none}
+.tab{flex:none;display:inline-flex;gap:7px;align-items:center;padding:9px 15px 9px 12px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink-2);font:600 13.5px var(--fb);white-space:nowrap}
+.tab:hover{border-color:var(--accent);color:var(--ink)}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.strip{display:flex;gap:8px;overflow-x:auto;padding-block:2px 14px;scrollbar-width:none}
+.chip{flex:none;display:flex;gap:7px;align-items:center;padding:6px 12px 6px 8px;border:1px solid var(--line);border-radius:14px;background:var(--panel);text-align:left}
+.chip:hover{border-color:var(--accent)}
+.chip[aria-current="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.chip b{font-weight:600;font-size:13px;display:block;line-height:1.2}
+.chip small{font-size:12.5px;color:var(--ink-2);display:block}
+.chip .star{color:var(--sun);display:inline-block;vertical-align:-1px}
+
+/* surfaces */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:0}
+.card>h3,.sec>h3{font:600 11.5px var(--fb);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);margin-bottom:12px}
+.sec{margin-top:18px}
+.sec>h2,.pagehead h2{font:600 19px/1.25 var(--fd);letter-spacing:-.01em;margin-bottom:12px}
+.pagehead{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
+.pagehead h2{margin:0}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))}
+.grid.two{grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr))}
+.muted{color:var(--ink-2)}
+.small{font-size:12.5px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{display:inline-flex;gap:7px;align-items:center;min-height:38px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);font:600 13px var(--fb);color:var(--ink)}
+.btn:hover{border-color:var(--accent)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font:600 12px/1.6 var(--fb);white-space:nowrap}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:22px;border-radius:22px;border:1px solid var(--line);position:relative;overflow:hidden;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--tint,#0A7480) 24%,var(--panel)),var(--panel) 72%)}
+.hero::before{content:"";position:absolute;inset:0;background:var(--pattern);-webkit-mask-image:linear-gradient(100deg,transparent 35%,#000);mask-image:linear-gradient(100deg,transparent 35%,#000);pointer-events:none}
+.hero>*{position:relative}
+.eyebrow{font:600 11.5px var(--fb);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
+.hero h1{font:600 clamp(22px,4.6vw,34px)/1.15 var(--fd);letter-spacing:-.015em;margin:4px 0 2px}
+.bigt{font:600 clamp(60px,13vw,104px)/1 var(--fd);letter-spacing:-.04em;margin:14px 0 6px}
+.bigt small{font-size:.28em;letter-spacing:0;color:var(--ink-2);margin-left:2px;vertical-align:top;position:relative;top:.3em}
+.cond{font-size:18px;font-weight:600}
+.hero .meta{color:var(--ink-2);margin-top:2px}
+.hero .acts{margin-top:16px}
+.hicon{width:clamp(96px,22vw,180px)}
+.hicon svg{width:100%;height:auto}
+
+/* tiles */
+.tiles{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));margin-top:12px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;min-width:0}
+.tile h3{font:600 11.5px var(--fb);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2);margin-bottom:8px}
+.tile .v{font:700 24px/1.15 var(--fb);letter-spacing:-.01em}
+.tile .v small{font-size:13px;font-weight:500;color:var(--ink-2);margin-left:3px}
+.tile p{color:var(--ink-2);font-size:13px;margin-top:4px}
+.bar{height:6px;border-radius:99px;background:var(--panel-2);overflow:hidden;margin-top:10px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.scale{height:6px;border-radius:99px;margin-top:10px;position:relative;background:linear-gradient(90deg,#2FB36B,#F2D13A,#F29A2E,#E5484D,#8F4FD3)}
+.scale i{position:absolute;top:-4px;width:4px;height:14px;border-radius:2px;background:var(--ink);box-shadow:0 0 0 2px var(--panel);transform:translateX(-50%)}
+.wind-arrow{display:inline-block;vertical-align:middle;margin-right:6px}
+.sunarc{width:100%;height:auto;max-height:130px}
+
+/* hours */
+.hrs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}
+.hr{flex:none;width:70px;text-align:center;padding:10px 6px;border-radius:14px;background:var(--panel-2);display:grid;gap:3px;justify-items:center}
+.hr.now{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.hr b{font-size:16px}
+.hr small{color:var(--ink-2);font-size:12px}
+.hr .rain{color:var(--rain);font-weight:600}
+
+/* alerts and tips */
+.alert{display:flex;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);align-items:flex-start}
+.alert+.alert{margin-top:8px}
+.alert.s1{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--panel))}
+.alert.s2{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--panel))}
+.alert.s0{border-color:var(--good);background:color-mix(in srgb,var(--good) 10%,var(--panel))}
+.alert b{display:block}
+.tip{display:grid;gap:6px;align-content:start}
+.tip h3{display:flex;gap:8px;align-items:center}
+.tip p{font-size:14.5px}
+.tip p+p{margin-top:4px}
+
+/* charts */
+.cscroll{overflow-x:auto;padding-bottom:4px}
+.cw{position:relative}
+.cw svg{overflow:visible}
+.ctip{position:absolute;top:4px;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:12.5px;line-height:1.45;box-shadow:0 8px 24px rgba(8,20,27,.16);z-index:5;white-space:nowrap}
+.ctip b{display:block;font-size:13px}
+.ax{fill:var(--ink-2);font-size:11px}
+.gl{stroke:var(--line);stroke-width:1}
+.ln{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:8px;color:var(--ink-2);font-size:12.5px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* daily rows */
+.days{display:grid;gap:0}
+.day{border-top:1px solid var(--line)}
+.day:first-child{border-top:0}
+.day>button{display:grid;grid-template-columns:minmax(78px,1.1fr) 38px 46px 40px minmax(60px,2fr) 40px;gap:8px 10px;align-items:center;width:100%;padding:10px 4px;background:none;border:0;text-align:left;min-height:54px}
+.day>button:hover{background:color-mix(in srgb,var(--accent-soft) 55%,transparent)}
+.day b{font-weight:600}
+.day .lo{color:var(--ink-2);text-align:right}
+.day .hi{font-weight:700}
+.day .pp{color:var(--rain);font-weight:600;font-size:13px}
+.rng{height:8px;border-radius:99px;background:var(--panel-2);position:relative}
+.rng i{position:absolute;top:0;bottom:0;border-radius:99px}
+.dd{display:none;padding:2px 4px 14px;gap:10px;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+.day.open .dd{display:grid}
+.dd div{background:var(--panel-2);border-radius:12px;padding:8px 10px;font-size:13px}
+.dd div span{display:block;color:var(--ink-2);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+
+/* map */
+.maplay{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:12px}
+.mapsvg{overflow-x:auto}
+.mapsvg svg{min-width:640px;width:100%;height:auto}
+.mk{cursor:pointer}
+.mk text{font:700 12px var(--fb);text-anchor:middle;pointer-events:none}
+.mk .nm{font:600 11.5px var(--fb);fill:var(--ink);paint-order:stroke;stroke:var(--panel);stroke-width:3.5px;stroke-linejoin:round}
+.mk:hover circle.b{stroke:var(--ink);stroke-width:2}
+.grat{stroke:var(--line);stroke-width:1;stroke-dasharray:3 5}
+.rank{display:grid;gap:6px;align-content:start}
+.rk{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:13.5px;padding:5px 2px;background:none;border:0;text-align:left;border-radius:8px}
+.rk:hover{background:var(--accent-soft)}
+.rk[aria-current="true"]{background:var(--accent-soft)}
+.rk .dot{width:14px;height:14px;border-radius:50%}
+.rk em{font-style:normal;font-weight:700}
+.legbar{height:10px;border-radius:99px;margin-top:8px}
+.legnum{display:flex;justify-content:space-between;color:var(--ink-2);font-size:12px;margin-top:4px}
+
+/* tables, selects, city cards */
+.tblw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:center;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--panel)}
+th{font-weight:600;color:var(--ink-2);font-size:12px}
+select{height:38px;border-radius:999px;border:1px solid var(--line);background:var(--panel);padding:0 14px;color:var(--ink);max-width:100%}
+.ccard{display:grid;gap:6px;text-align:left;padding:14px;border-radius:16px;border:1px solid var(--line);background:var(--panel);position:relative;width:100%}
+.ccard:hover{border-color:var(--accent)}
+.ccard .top2{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ccard h3{font:600 15px var(--fb);letter-spacing:0;text-transform:none;color:var(--ink);margin:0}
+.ccard .t{font:700 26px/1 var(--fb);letter-spacing:-.02em}
+.cwrap{position:relative}
+.cwrap .fav{position:absolute;right:8px;bottom:8px}
+.star{color:var(--ink-2)}.fav[aria-pressed="true"] .star{color:var(--sun)}
+.fav{border:0;background:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center}
+.fav:hover{background:var(--accent-soft)}
+
+/* assistant */
+.qs{display:flex;flex-wrap:wrap;gap:8px}
+.ask{display:flex;gap:8px;margin:14px 0}
+.ask input{flex:1;min-width:0;height:44px;border-radius:999px;border:1px solid var(--line);background:var(--panel);padding:0 16px}
+.msg{display:grid;gap:6px;margin-top:10px}
+.msg .q{justify-self:end;max-width:min(520px,90%);background:var(--accent);color:var(--accent-ink);padding:8px 14px;border-radius:16px 16px 4px 16px;font-weight:600}
+.msg .a{justify-self:start;max-width:min(640px,96%);background:var(--panel);border:1px solid var(--line);padding:10px 14px;border-radius:16px 16px 16px 4px}
+
+/* state banners, toast, skeleton */
+.banner{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;margin-bottom:12px;border:1px solid var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--panel))}
+.banner b{display:block}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;z-index:80;font-weight:600;max-width:calc(100vw - 32px)}
+.skel{display:grid;gap:12px}
+.skel i{display:block;border-radius:16px;background:linear-gradient(90deg,var(--panel-2),var(--panel),var(--panel-2));background-size:200% 100%;animation:sk 1.4s linear infinite;height:120px}
+.skel i:first-child{height:240px}
+@keyframes sk{to{background-position:-200% 0}}
+footer{margin-top:28px;color:var(--ink-2);font-size:12.5px;display:grid;gap:4px}
+footer a{color:var(--accent)}
+
+@media (max-width:820px){
+  .maplay{grid-template-columns:minmax(0,1fr)}
+  .brand small{display:none}
+}
+@media (max-width:560px){
+  .hero{grid-template-columns:minmax(0,1fr);padding:18px}
+  .hicon{position:absolute;right:10px;top:10px;width:84px}
+  .day>button{grid-template-columns:minmax(70px,1fr) 34px 40px 36px minmax(40px,1.3fr) 36px;gap:6px}
+  .ctrls{width:100%;justify-content:space-between}
+  .search{max-width:none}
+}
+
+/* agro room */
+.agbrand{display:flex;gap:12px;align-items:center;min-width:0}
+.aglogo{width:42px;height:42px;border-radius:13px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.agbadge{display:inline-flex;gap:6px;align-items:center;padding:5px 12px;border-radius:999px;font:600 12.5px var(--fb);background:color-mix(in srgb,var(--good) 14%,var(--panel));border:1px solid var(--good)}
+.agbadge i{width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block}
+.agbadge.stale{background:color-mix(in srgb,var(--warn) 14%,var(--panel));border-color:var(--warn)}
+.agbadge.stale i{background:var(--warn)}
+.aglay{display:grid;grid-template-columns:minmax(0,1fr) 350px;gap:14px;align-items:start}
+.agchat{min-width:0;display:flex;flex-direction:column;min-height:62vh}
+.agctx{display:flex;flex-wrap:wrap;gap:10px 14px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.agctx>div{flex:1 1 180px;min-width:0}
+.agctx label{display:block;font:600 11.5px var(--fb);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);margin-bottom:4px}
+.agctx select{width:100%}
+.agmsgs{flex:1;display:flex;flex-direction:column;gap:14px;padding-block:16px}
+.agempty{padding:20px;border:1px dashed var(--line);border-radius:18px}
+.agempty h3{font:600 18px/1.25 var(--fd);letter-spacing:-.01em;margin-bottom:8px}
+.agempty p{color:var(--ink-2);max-width:62ch}
+.agchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.agchip{padding:8px 14px;border-radius:14px;border:1px solid var(--line);background:var(--panel);font:500 13.5px/1.35 var(--fb);text-align:left}
+.agchip:hover{border-color:var(--accent);background:var(--accent-soft)}
+.agm{display:flex;flex-direction:column;gap:6px;min-width:0}
+.agm.u{align-items:flex-end}
+.agb{max-width:min(720px,100%);padding:11px 15px;border-radius:18px;overflow-wrap:anywhere;min-width:0}
+.agm.u .agb{background:var(--ink);color:var(--bg);border-bottom-right-radius:5px;font-weight:500;white-space:pre-wrap}
+.agm.a .agb{background:var(--panel);border:1px solid var(--line);border-bottom-left-radius:5px}
+.agm.a .agb p+p,.agm.a .agb p+ul,.agm.a .agb ul+p,.agm.a .agb p+ol,.agm.a .agb ol+p{margin-top:8px}
+.agm.a .agb ul,.agm.a .agb ol{padding-left:20px;margin:0}
+.agm.a .agb li+li{margin-top:3px}
+.agm.a .agb a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+.agm.a .agb strong{font-weight:700}
+.agb.err{background:color-mix(in srgb,var(--bad) 12%,var(--panel))!important;border-color:var(--bad)!important}
+.agt{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.btn.sm{min-height:32px;padding:4px 11px;font-size:12.5px}
+.agthink{display:inline-flex;gap:5px;align-items:center;color:var(--ink-2)}
+.agthink i{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:agdot 1.1s infinite ease-in-out}
+.agthink i:nth-child(2){animation-delay:.15s}.agthink i:nth-child(3){animation-delay:.3s}
+@keyframes agdot{0%,80%,100%{opacity:.25;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+.agcomp{position:sticky;bottom:0;z-index:40;background:var(--bg);padding-block:10px calc(12px + env(safe-area-inset-bottom,0px))}
+.agbox{display:flex;gap:8px;align-items:flex-end;background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:8px 8px 8px 16px}
+.agbox:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.agbox textarea{flex:1;min-width:0;border:0;background:none;outline:0;resize:none;max-height:160px;min-height:28px;padding:6px 0;line-height:1.45}
+.aghint{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;margin-top:6px;padding-inline:6px}
+.agside{position:sticky;top:calc(64px + env(safe-area-inset-top,0px));display:grid;gap:12px;max-height:calc(100vh - 84px);overflow-y:auto;padding-bottom:12px;min-width:0}
+.agwarn{padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--warn) 13%,var(--panel));border:1px solid var(--warn);font-size:13.5px}
+.agtbl th,.agtbl td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:13px}
+.agtbl th{font-weight:600;color:var(--ink-2);font-size:11.5px}
+.agtbl th:first-child,.agtbl td:first-child{position:static}
+.agtbl th,.agtbl td{white-space:normal}
+.agtbl{table-layout:fixed}
+.agtbl th:nth-child(1){width:44%}.agtbl th:nth-child(2){width:29%}.agtbl th:nth-child(3){width:27%}
+.agtbl td.nw{white-space:normal;overflow-wrap:anywhere}
+.agtbl tr:last-child td{border-bottom:0}
+.agl{margin:0;padding-left:18px;font-size:13.5px}
+.agl li+li{margin-top:5px}
+.agsrc{display:grid;gap:9px}
+.agsrc a{color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}
+.agsrc div{font-size:13px}
+.agsrc small{display:block;color:var(--ink-2)}
+.agdt{display:none}
+.agfoot{margin-top:6px}
+@media (max-width:900px){
+  .aglay{grid-template-columns:minmax(0,1fr)}
+  .agside{position:static;max-height:none;overflow:visible;order:-1}
+  .agside[data-open="false"]{display:none}
+  .agdt{display:inline-flex}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+<div class="wrap">
+  <header class="top" id="top">
+    <a class="brand" href="#today" id="brand">
+      <svg width="38" height="38" viewBox="0 0 48 48" aria-hidden="true"><rect x="2" y="2" width="44" height="44" rx="12" fill="var(--accent)"/><g stroke="var(--sun)" stroke-width="2.6" stroke-linecap="round"><line x1="17" y1="6.5" x2="17" y2="9.5"/><line x1="6.5" y1="17" x2="9.5" y2="17"/><line x1="9.6" y1="9.6" x2="11.7" y2="11.7"/><line x1="24.4" y1="9.6" x2="22.3" y2="11.7"/></g><circle cx="17" cy="17" r="6" fill="var(--sun)"/><path d="M16 38a6.5 6.5 0 0 1-.6-13 9.5 9.5 0 0 1 18-2.2A7.6 7.6 0 0 1 36 38z" fill="#FFFFFF"/></svg>
+      <span><b id="brandName"></b><small id="brandSub"></small></span>
+    </a>
+    <div class="search" role="search">
+      <svg class="si" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" type="search" autocomplete="off" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="sugg">
+      <div class="sugg" id="sugg" role="listbox" hidden></div>
+    </div>
+    <div class="ctrls">
+      <div class="seg" id="langSeg" role="group"></div>
+      <button class="ibtn" id="themeBtn" type="button"></button>
+      <button class="ibtn" id="setBtn" type="button" aria-expanded="false" aria-controls="setPop"></button>
+      <div class="pop" id="setPop" hidden></div>
+    </div>
+  </header>
+  <nav class="tabs" id="tabs" role="tablist"></nav>
+  <div class="strip" id="strip"></div>
+  <div id="banner"></div>
+  <main id="view" aria-live="polite"></main>
+  <footer id="foot"></footer>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+<script>
+'use strict';
+const LANGS=['ru','uz','en'];
+/* ---------- strings: ru / uz / en ---------- */
+const T={
+ru:{
+app:'Погода Узбекистана',sub:'Прогноз по городам и областям',
+n_today:'Сегодня',n_hourly:'По часам',n_daily:'10 дней',n_map:'Карта',n_compare:'Сравнение',n_air:'Воздух',n_cities:'Города',n_assistant:'Помощник',
+search:'Найти город или область',no_res:'Ничего не найдено',
+set:'Настройки',s_temp:'Температура',s_wind:'Ветер',s_press:'Давление',s_theme:'Тема',s_lang:'Язык',
+th_auto:'Авто',th_light:'Светлая',th_dark:'Тёмная',theme_btn:'Сменить тему',
+u_ms:'м/с',u_kmh:'км/ч',u_mmhg:'мм рт. ст.',u_hpa:'гПа',
+feels:'Ощущается как {0}',hilo:'Макс. {0} · мин. {1}',
+hum:'Влажность',wind:'Ветер',gust:'порывы до {0}',press:'Давление',uv:'УФ-индекс',cloud:'Облачность',precip:'Осадки сегодня',precip_p:'вероятность до {0}%',
+sunrise:'Восход',sunset:'Закат',daylen:'Световой день {0} ч {1} мин',aqi:'Качество воздуха',aqi_none:'нет данных',
+fav_add:'В избранное',fav_del:'Убрать из избранного',copy:'Скопировать сводку',copied:'Сводка скопирована',copyfail:'Не удалось скопировать',
+refresh:'Обновить',refreshing:'Обновляю…',refreshed:'Данные обновлены',refail:'Не удалось обновить, показаны прежние данные',updated:'Обновлено в {0}',
+next_h:'Ближайшие часы',now:'Сейчас',tips_h:'Советы на сегодня',alerts_h:'Предупреждения на 3 дня',
+alerts_none:'По заданным порогам опасных явлений в ближайшие 3 дня не ожидается.',
+alerts_note:'Расчёт по пороговым значениям прогноза. Официальные предупреждения публикует Узгидромет.',
+demo_t:'Демонстрационные данные',demo_x:'Нет связи с источником прогноза (Open-Meteo). Показаны примерные значения по климату региона. Это не прогноз.',retry:'Повторить',
+loading:'Загружаю прогноз…',
+src:'Данные прогноза: Open-Meteo.com. Качество воздуха по шкале US AQI. Время указано по Ташкенту (UTC+5).',
+hr_t:'Почасовой прогноз',h24:'24 ч',h48:'48 ч',m_temp:'Температура',m_pop:'Осадки',m_wind:'Ветер',pop_l:'Вероятность осадков',
+dy_t:'Прогноз на 10 дней',warm_day:'Самый тёплый день',cold_day:'Самый холодный день',wet_day:'Больше всего осадков',dry10:'без осадков',
+mm:'мм',
+map_t:'Города на схеме',map_n:'Схема расположения городов по широте и долготе. Границы не показаны.',
+l_temp:'Температура',l_precip:'Осадки',l_wind:'Ветер',l_uv:'УФ',l_aqi:'Воздух',d_now:'Сейчас',rank:'Рейтинг',
+cmp_t:'Сравнение городов',cmp_pick:'Выберите до 4 городов',cmp_max4:'Можно выбрать не более 4 городов',c_tmax:'Макс. температура',c_tmin:'Мин. температура',c_psum:'Осадки',c_wind:'Ветер',
+air_t:'Качество воздуха',pm25:'PM2,5',pm10:'PM10',who:'{0}× суточной нормы ВОЗ',air_rank:'Города по качеству воздуха',air_note:'Шкала US AQI: чем ниже значение, тем чище воздух.',
+aq1:'Хорошее',aq2:'Умеренное',aq3:'Вредно для чувствительных',aq4:'Вредное',aq5:'Очень вредное',aq6:'Опасное',
+av1:'Можно гулять и заниматься спортом без ограничений.',av2:'Подходит большинству. Очень чувствительным людям лучше сократить долгие нагрузки на улице.',av3:'Детям, пожилым и людям с болезнями сердца и лёгких стоит сократить время на улице.',av4:'Сократите нагрузки на улице. Проветривайте жильё короткими сериями.',av5:'Оставайтесь в помещении, при выходе используйте респиратор класса FFP2.',av6:'Не выходите на улицу без необходимости, используйте очиститель воздуха.',
+ct_t:'Города и области',ct_reg:'Область',ct_all:'Все области',ct_sort:'Сортировка',so_name:'По алфавиту',so_warm:'Сначала тёплые',so_cold:'Сначала холодные',so_rain:'По осадкам',so_air:'По воздуху',ct_fav:'Избранное',ct_empty:'В этой области городов нет.',
+as_t:'Умный помощник',as_h:'Отвечаю по загруженным данным прогноза для выбранного города. Выберите вопрос или напишите свой.',as_ph:'Например: нужен ли зонт?',as_go:'Спросить',as_unk:'Не понял вопрос. Выберите один из вариантов выше.',as_city:'Город: {0}',
+q_umb:'Нужен ли зонт?',q_walk:'Когда лучше гулять?',q_tom:'Что надеть завтра?',q_rain:'Когда будет дождь?',q_trend:'Когда будет теплее всего?',q_warm:'Где сейчас теплее всего?',q_cold:'Где сейчас холоднее всего?',q_air:'Где чище воздух?',q_wknd:'Куда поехать на выходные?',
+a_warm:'Теплее всего сейчас: {0}.',a_cold:'Холоднее всего сейчас: {0}.',a_trend:'В городе {0} самый тёплый день: {1} (макс. {2}), самый холодный: {3} (макс. {4}).',
+a_air:'Самый чистый воздух сейчас: {0}. Хуже всего: {1}.',a_rain:'В городе {0} осадки ожидаются: {1}.',a_norain:'В городе {0} в ближайшие 10 дней существенных осадков не ожидается.',
+a_wknd:'На выходные ({0}) лучшая погода: {1}.',a_wknd0:'В прогнозе нет выходных дней.',a_tom:'Завтра в городе {0} от {1} до {2}. {3}',
+t_wear:'Что надеть',t_umb:'Зонт',t_walk:'Прогулка',t_health:'Здоровье',t_road:'Дорога',t_garden:'Сад и огород',
+w1:'Очень холодно: тёплая куртка, шапка, шарф и перчатки.',w2:'Холодно: зимняя куртка или пальто и шапка.',w3:'Прохладно: куртка или плотная кофта.',w4:'Комфортно: достаточно лёгкой одежды, вечером пригодится кофта.',w5:'Тепло: лёгкая одежда из натуральных тканей.',w6:'Жарко: лёгкая светлая одежда, головной убор и вода с собой.',
+u1:'Зонт не нужен: осадков почти не ожидается.',u2:'Возьмите зонт на всякий случай: вероятность осадков до {0}%.',u3:'Зонт пригодится: вероятность осадков до {0}%, около {1} мм.',u4:'Ожидается снег: вероятность до {0}%, около {1} мм.',
+wk1:'Лучшее время для прогулки: {0}, ожидается {1}.',wk0:'Подходящих часов для прогулки в ближайшие сутки нет: слишком жарко, холодно или мокро.',
+uvl1:'Защита не нужна.',uvl2:'Если вы долго на улице, нужен солнцезащитный крем.',uvl3:'Нужны крем SPF 30+, очки и головной убор.',uvl4:'Избегайте солнца с 11 до 16 часов, используйте SPF 50+.',uvl5:'Опасный уровень: оставайтесь в тени с 10 до 16 часов.',
+h_uv:'УФ-индекс до {0}. {1}',h_air:'Воздух: {0}, AQI {1}.',
+r_ice:'Возможен гололёд: температура около нуля при осадках или тумане.',r_fog:'Туман: видимость снижена, включайте ближний свет.',r_wind:'Порывы ветра до {0}: осторожнее на открытых трассах.',r_ok:'Дорожные условия обычные.',
+g_frost:'Возможны заморозки (до {0}): укройте теплолюбивые растения на ночь.',g_dry:'Жарко и сухо в ближайшие дни: поливайте утром или вечером.',g_rain:'Ожидаются осадки (около {0} мм за 3 дня): полив можно пропустить.',g_ok:'Обычный режим ухода: погода без резких перемен.',
+al_heat:'Сильная жара',al_hot:'Жара',al_frost2:'Сильный мороз',al_cold:'Мороз',al_frost:'Заморозки',al_wind:'Сильный ветер',al_rain:'Сильные осадки',al_storm:'Гроза',al_uv:'Очень высокий УФ-индекс',al_air:'Плохое качество воздуха',
+al_d_heat:'Максимум до {0}',al_d_frost:'Минимум до {0}',al_d_wind:'Ветер до {0}',al_d_rain:'Около {0} мм за сутки',al_d_storm:'Возможна гроза',al_d_uv:'УФ-индекс {0}',al_d_air:'AQI {0}',
+sv1:'Внимание',sv2:'Опасно',
+dir:['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'],
+wd_s:['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],wd_l:['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'],
+mon:['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'],
+today_w:'сегодня',tom_w:'завтра',
+sr_l:'Восход',ss_l:'Закат',pr_l:'Осадки за сутки',uv_l:'УФ-индекс',wi_l:'Макс. ветер',
+ctop:'Макс. {0}, мин. {1}',more:'Подробнее',reg:'Область',
+sum_f:'{0}: {1}, {2}. Ощущается как {3}. Макс. {4}, мин. {5}. Ветер {6}, влажность {7}%.'
+},
+uz:{
+app:'Oʻzbekiston ob-havosi',sub:'Shahar va viloyatlar boʻyicha bashorat',
+n_today:'Bugun',n_hourly:'Soatlar',n_daily:'10 kun',n_map:'Xarita',n_compare:'Taqqoslash',n_air:'Havo',n_cities:'Shaharlar',n_assistant:'Yordamchi',
+search:'Shahar yoki viloyatni qidiring',no_res:'Hech narsa topilmadi',
+set:'Sozlamalar',s_temp:'Harorat',s_wind:'Shamol',s_press:'Bosim',s_theme:'Mavzu',s_lang:'Til',
+th_auto:'Avto',th_light:'Yorugʻ',th_dark:'Qorongʻi',theme_btn:'Mavzuni almashtirish',
+u_ms:'m/s',u_kmh:'km/soat',u_mmhg:'mm sim. ust.',u_hpa:'gPa',
+feels:'His qilinishi {0}',hilo:'Maks. {0} · min. {1}',
+hum:'Namlik',wind:'Shamol',gust:'shamol zarbi {0} gacha',press:'Bosim',uv:'UB indeksi',cloud:'Bulutlilik',precip:'Bugungi yogʻin',precip_p:'ehtimol {0}% gacha',
+sunrise:'Quyosh chiqishi',sunset:'Quyosh botishi',daylen:'Kun uzunligi {0} soat {1} daqiqa',aqi:'Havo sifati',aqi_none:'maʼlumot yoʻq',
+fav_add:'Tanlanganlarga',fav_del:'Tanlanganlardan olib tashlash',copy:'Xulosani nusxalash',copied:'Xulosa nusxalandi',copyfail:'Nusxalab boʻlmadi',
+refresh:'Yangilash',refreshing:'Yangilanmoqda…',refreshed:'Maʼlumotlar yangilandi',refail:'Yangilab boʻlmadi, oldingi maʼlumotlar koʻrsatilmoqda',updated:'Yangilangan vaqt: {0}',
+next_h:'Yaqin soatlar',now:'Hozir',tips_h:'Bugungi maslahatlar',alerts_h:'3 kunlik ogohlantirishlar',
+alerts_none:'Belgilangan chegaralar boʻyicha yaqin 3 kunda xavfli hodisalar kutilmaydi.',
+alerts_note:'Bashorat chegaraviy qiymatlari asosida hisoblangan. Rasmiy ogohlantirishlarni Oʻzgidromet eʼlon qiladi.',
+demo_t:'Namunaviy maʼlumotlar',demo_x:'Bashorat manbasi (Open-Meteo) bilan aloqa yoʻq. Hudud iqlimiga mos taxminiy qiymatlar koʻrsatilmoqda. Bu bashorat emas.',retry:'Qayta urinish',
+loading:'Bashorat yuklanmoqda…',
+src:'Bashorat maʼlumotlari: Open-Meteo.com. Havo sifati US AQI shkalasi boʻyicha. Vaqt Toshkent vaqti (UTC+5) boʻyicha.',
+hr_t:'Soatlik bashorat',h24:'24 soat',h48:'48 soat',m_temp:'Harorat',m_pop:'Yogʻin',m_wind:'Shamol',pop_l:'Yogʻin ehtimoli',
+dy_t:'10 kunlik bashorat',warm_day:'Eng issiq kun',cold_day:'Eng sovuq kun',wet_day:'Eng koʻp yogʻin',dry10:'yogʻinsiz',
+mm:'mm',
+map_t:'Shaharlar sxemasi',map_n:'Shaharlarning kenglik va uzunlik boʻyicha joylashuv sxemasi. Chegaralar koʻrsatilmagan.',
+l_temp:'Harorat',l_precip:'Yogʻin',l_wind:'Shamol',l_uv:'UB',l_aqi:'Havo',d_now:'Hozir',rank:'Reyting',
+cmp_t:'Shaharlarni taqqoslash',cmp_pick:'4 tagacha shahar tanlang',cmp_max4:'4 tadan ortiq shahar tanlab boʻlmaydi',c_tmax:'Maks. harorat',c_tmin:'Min. harorat',c_psum:'Yogʻin',c_wind:'Shamol',
+air_t:'Havo sifati',pm25:'PM2,5',pm10:'PM10',who:'JSST sutkalik me’yoridan {0} marta yuqori',air_rank:'Shaharlar havo sifati boʻyicha',air_note:'US AQI shkalasi: qiymat qancha past boʻlsa, havo shuncha toza.',
+aq1:'Yaxshi',aq2:'Oʻrtacha',aq3:'Sezgirlar uchun zararli',aq4:'Zararli',aq5:'Juda zararli',aq6:'Xavfli',
+av1:'Ochiq havoda cheklovsiz yurish va sport bilan shugʻullanish mumkin.',av2:'Koʻpchilik uchun mos. Juda sezgir odamlar uzoq mashqlarni qisqartirgani maʼqul.',av3:'Bolalar, keksalar va yurak-oʻpka kasalligi borlar ochiqda kamroq boʻlsin.',av4:'Ochiqdagi yuklamani kamaytiring. Xonani qisqa vaqtga shamollating.',av5:'Uyda qoling, tashqariga chiqsangiz FFP2 respirator taqing.',av6:'Zarurat boʻlmasa tashqariga chiqmang, havo tozalagichdan foydalaning.',
+ct_t:'Shahar va viloyatlar',ct_reg:'Viloyat',ct_all:'Barcha viloyatlar',ct_sort:'Saralash',so_name:'Alifbo boʻyicha',so_warm:'Avval issiqlari',so_cold:'Avval sovuqlari',so_rain:'Yogʻin boʻyicha',so_air:'Havo boʻyicha',ct_fav:'Tanlanganlar',ct_empty:'Bu viloyatda shaharlar yoʻq.',
+as_t:'Aqlli yordamchi',as_h:'Tanlangan shahar uchun yuklangan bashorat asosida javob beraman. Savolni tanlang yoki oʻzingiznikini yozing.',as_ph:'Masalan: soyabon kerakmi?',as_go:'Soʻrash',as_unk:'Savolni tushunmadim. Yuqoridagi variantlardan birini tanlang.',as_city:'Shahar: {0}',
+q_umb:'Soyabon kerakmi?',q_walk:'Qachon sayr qilgan yaxshi?',q_tom:'Ertaga nima kiyish kerak?',q_rain:'Yomgʻir qachon yogʻadi?',q_trend:'Eng issiq kun qachon?',q_warm:'Hozir qayer eng issiq?',q_cold:'Hozir qayer eng sovuq?',q_air:'Qayerda havo toza?',q_wknd:'Dam olish kunlari qayerga borish mumkin?',
+a_warm:'Hozir eng issiq joy: {0}.',a_cold:'Hozir eng sovuq joy: {0}.',a_trend:'{0} shahrida eng issiq kun: {1} (maks. {2}), eng sovuq kun: {3} (maks. {4}).',
+a_air:'Hozir havo eng toza joy: {0}. Eng yomoni: {1}.',a_rain:'{0} shahrida yogʻin kutilmoqda: {1}.',a_norain:'{0} shahrida yaqin 10 kunda sezilarli yogʻin kutilmaydi.',
+a_wknd:'Dam olish kunlari ({0}) eng yaxshi ob-havo: {1}.',a_wknd0:'Bashoratda dam olish kunlari yoʻq.',a_tom:'Ertaga {0} shahrida {1} dan {2} gacha. {3}',
+t_wear:'Nima kiyish kerak',t_umb:'Soyabon',t_walk:'Sayr',t_health:'Salomatlik',t_road:'Yoʻl',t_garden:'Bogʻ va poliz',
+w1:'Juda sovuq: issiq kurtka, qalpoq, sharf va qoʻlqop kiying.',w2:'Sovuq: qishki kurtka yoki palto va qalpoq kiying.',w3:'Salqin: kurtka yoki qalin kofta kiying.',w4:'Qulay: yengil kiyim yetarli, kechqurun kofta kerak boʻladi.',w5:'Iliq: tabiiy matodan yengil kiyim kiying.',w6:'Issiq: yengil och rangli kiyim, bosh kiyim va suv olib chiqing.',
+u1:'Soyabon kerak emas: yogʻin deyarli kutilmaydi.',u2:'Har ehtimolga qarshi soyabon oling: yogʻin ehtimoli {0}% gacha.',u3:'Soyabon asqotadi: yogʻin ehtimoli {0}% gacha, taxminan {1} mm.',u4:'Qor kutilmoqda: ehtimol {0}% gacha, taxminan {1} mm.',
+wk1:'Sayr uchun eng yaxshi vaqt: {0}, havo {1}.',wk0:'Yaqin sutkada sayr uchun mos soat yoʻq: juda issiq, sovuq yoki nam.',
+uvl1:'Himoya kerak emas.',uvl2:'Uzoq vaqt ochiqda boʻlsangiz, quyoshdan himoya kremi kerak.',uvl3:'SPF 30+ krem, koʻzoynak va bosh kiyim kerak.',uvl4:'Soat 11 dan 16 gacha quyoshdan saqlaning, SPF 50+ ishlating.',uvl5:'Xavfli daraja: soat 10 dan 16 gacha soyada boʻling.',
+h_uv:'UB indeksi {0} gacha. {1}',h_air:'Havo: {0}, AQI {1}.',
+r_ice:'Muzlama boʻlishi mumkin: yogʻin yoki tuman paytida harorat nol atrofida.',r_fog:'Tuman: koʻrinish yomon, yaqin chiroqni yoqing.',r_wind:'Shamol zarbi {0} gacha: ochiq yoʻllarda ehtiyot boʻling.',r_ok:'Yoʻl sharoiti odatiy.',
+g_frost:'Sovuq urishi mumkin ({0} gacha): issiqsevar oʻsimliklarni kechasi yopib qoʻying.',g_dry:'Yaqin kunlarda issiq va quruq: ertalab yoki kechqurun sugʻoring.',g_rain:'Yogʻin kutilmoqda (3 kunda taxminan {0} mm): sugʻorishni oʻtkazib yuborish mumkin.',g_ok:'Odatiy parvarish: ob-havo keskin oʻzgarmaydi.',
+al_heat:'Kuchli issiq',al_hot:'Issiq',al_frost2:'Qattiq sovuq',al_cold:'Sovuq',al_frost:'Sovuq urishi',al_wind:'Kuchli shamol',al_rain:'Kuchli yogʻin',al_storm:'Momaqaldiroq',al_uv:'Juda yuqori UB indeksi',al_air:'Havo sifati yomon',
+al_d_heat:'Maksimum {0} gacha',al_d_frost:'Minimum {0} gacha',al_d_wind:'Shamol {0} gacha',al_d_rain:'Sutkada taxminan {0} mm',al_d_storm:'Momaqaldiroq boʻlishi mumkin',al_d_uv:'UB indeksi {0}',al_d_air:'AQI {0}',
+sv1:'Diqqat',sv2:'Xavfli',
+dir:['Shim.','Sh-shar.','Sharq','J-shar.','Janub','J-gʻarb','Gʻarb','Sh-gʻarb'],
+wd_s:['Yak','Dush','Sesh','Chor','Pay','Jum','Shan'],wd_l:['yakshanba','dushanba','seshanba','chorshanba','payshanba','juma','shanba'],
+mon:['yan','fev','mar','apr','may','iyn','iyl','avg','sen','okt','noy','dek'],
+today_w:'bugun',tom_w:'ertaga',
+sr_l:'Quyosh chiqishi',ss_l:'Quyosh botishi',pr_l:'Sutkalik yogʻin',uv_l:'UB indeksi',wi_l:'Maks. shamol',
+ctop:'Maks. {0}, min. {1}',more:'Batafsil',reg:'Viloyat',
+sum_f:'{0}: {1}, {2}. His qilinishi {3}. Maks. {4}, min. {5}. Shamol {6}, namlik {7}%.'
+},
+en:{
+app:'Uzbekistan Weather',sub:'Forecast for cities and regions',
+n_today:'Today',n_hourly:'Hourly',n_daily:'10 days',n_map:'Map',n_compare:'Compare',n_air:'Air',n_cities:'Cities',n_assistant:'Assistant',
+search:'Search a city or region',no_res:'Nothing found',
+set:'Settings',s_temp:'Temperature',s_wind:'Wind',s_press:'Pressure',s_theme:'Theme',s_lang:'Language',
+th_auto:'Auto',th_light:'Light',th_dark:'Dark',theme_btn:'Switch theme',
+u_ms:'m/s',u_kmh:'km/h',u_mmhg:'mmHg',u_hpa:'hPa',
+feels:'Feels like {0}',hilo:'High {0} · low {1}',
+hum:'Humidity',wind:'Wind',gust:'gusts up to {0}',press:'Pressure',uv:'UV index',cloud:'Cloud cover',precip:'Precipitation today',precip_p:'chance up to {0}%',
+sunrise:'Sunrise',sunset:'Sunset',daylen:'Daylight {0} h {1} min',aqi:'Air quality',aqi_none:'no data',
+fav_add:'Add to favorites',fav_del:'Remove from favorites',copy:'Copy summary',copied:'Summary copied',copyfail:'Could not copy',
+refresh:'Refresh',refreshing:'Refreshing…',refreshed:'Data refreshed',refail:'Could not refresh, showing previous data',updated:'Updated at {0}',
+next_h:'Next hours',now:'Now',tips_h:'Tips for today',alerts_h:'Warnings for 3 days',
+alerts_none:'No hazardous conditions by the set thresholds in the next 3 days.',
+alerts_note:'Calculated from forecast thresholds. Official warnings are issued by Uzhydromet.',
+demo_t:'Demo data',demo_x:'Cannot reach the forecast source (Open-Meteo). Showing sample values based on regional climate. This is not a forecast.',retry:'Retry',
+loading:'Loading forecast…',
+src:'Forecast data: Open-Meteo.com. Air quality on the US AQI scale. Times are Tashkent time (UTC+5).',
+hr_t:'Hourly forecast',h24:'24 h',h48:'48 h',m_temp:'Temperature',m_pop:'Precipitation',m_wind:'Wind',pop_l:'Chance of precipitation',
+dy_t:'10-day forecast',warm_day:'Warmest day',cold_day:'Coldest day',wet_day:'Most precipitation',dry10:'no precipitation',
+mm:'mm',
+map_t:'Cities on the grid',map_n:'Layout of cities by latitude and longitude. Borders are not drawn.',
+l_temp:'Temperature',l_precip:'Precipitation',l_wind:'Wind',l_uv:'UV',l_aqi:'Air',d_now:'Now',rank:'Ranking',
+cmp_t:'Compare cities',cmp_pick:'Pick up to 4 cities',cmp_max4:'You can pick at most 4 cities',c_tmax:'High temp.',c_tmin:'Low temp.',c_psum:'Precipitation',c_wind:'Wind',
+air_t:'Air quality',pm25:'PM2.5',pm10:'PM10',who:'{0}× the WHO daily guideline',air_rank:'Cities by air quality',air_note:'US AQI scale: the lower the value, the cleaner the air.',
+aq1:'Good',aq2:'Moderate',aq3:'Unhealthy for sensitive groups',aq4:'Unhealthy',aq5:'Very unhealthy',aq6:'Hazardous',
+av1:'Outdoor walks and sport are fine.',av2:'Fine for most people. Very sensitive people should limit long outdoor effort.',av3:'Children, older adults and people with heart or lung conditions should spend less time outdoors.',av4:'Limit outdoor effort. Ventilate your home in short bursts.',av5:'Stay indoors; wear an FFP2 respirator if you go out.',av6:'Avoid going out; use an air purifier.',
+ct_t:'Cities and regions',ct_reg:'Region',ct_all:'All regions',ct_sort:'Sort',so_name:'Alphabetical',so_warm:'Warmest first',so_cold:'Coldest first',so_rain:'By precipitation',so_air:'By air quality',ct_fav:'Favorites',ct_empty:'No cities in this region.',
+as_t:'Smart assistant',as_h:'I answer from the forecast loaded for the selected city. Pick a question or type your own.',as_ph:'For example: do I need an umbrella?',as_go:'Ask',as_unk:'I did not understand. Pick one of the questions above.',as_city:'City: {0}',
+q_umb:'Do I need an umbrella?',q_walk:'Best time for a walk?',q_tom:'What to wear tomorrow?',q_rain:'When will it rain?',q_trend:'When will it be warmest?',q_warm:'Where is warmest now?',q_cold:'Where is coldest now?',q_air:'Where is the air cleanest?',q_wknd:'Where to go this weekend?',
+a_warm:'Warmest right now: {0}.',a_cold:'Coldest right now: {0}.',a_trend:'In {0} the warmest day is {1} (high {2}), the coldest is {3} (high {4}).',
+a_air:'Cleanest air right now: {0}. Worst: {1}.',a_rain:'In {0} precipitation is expected: {1}.',a_norain:'In {0} no significant precipitation is expected in the next 10 days.',
+a_wknd:'Best weekend weather ({0}): {1}.',a_wknd0:'There are no weekend days in the forecast.',a_tom:'Tomorrow in {0}: {1} to {2}. {3}',
+t_wear:'What to wear',t_umb:'Umbrella',t_walk:'Walk',t_health:'Health',t_road:'Road',t_garden:'Garden',
+w1:'Very cold: warm jacket, hat, scarf and gloves.',w2:'Cold: winter jacket or coat and a hat.',w3:'Cool: a jacket or a thick sweater.',w4:'Comfortable: light clothes, add a sweater for the evening.',w5:'Warm: light clothes in natural fabrics.',w6:'Hot: light-colored clothes, a hat and water with you.',
+u1:'No umbrella needed: almost no precipitation expected.',u2:'Take an umbrella just in case: chance of precipitation up to {0}%.',u3:'An umbrella will help: chance up to {0}%, about {1} mm.',u4:'Snow expected: chance up to {0}%, about {1} mm.',
+wk1:'Best time for a walk: {0}, expect {1}.',wk0:'No good hours for a walk in the next day: too hot, cold or wet.',
+uvl1:'No protection needed.',uvl2:'Use sunscreen if you are outside for long.',uvl3:'Use SPF 30+, sunglasses and a hat.',uvl4:'Avoid the sun from 11:00 to 16:00 and use SPF 50+.',uvl5:'Dangerous level: stay in the shade from 10:00 to 16:00.',
+h_uv:'UV index up to {0}. {1}',h_air:'Air: {0}, AQI {1}.',
+r_ice:'Ice possible: temperature near zero with precipitation or fog.',r_fog:'Fog: reduced visibility, use low beams.',r_wind:'Gusts up to {0}: take care on open highways.',r_ok:'Normal road conditions.',
+g_frost:'Frost possible (down to {0}): cover heat-loving plants overnight.',g_dry:'Hot and dry in the coming days: water in the morning or evening.',g_rain:'Precipitation expected (about {0} mm over 3 days): you can skip watering.',g_ok:'Normal care routine: no sharp changes in the weather.',
+al_heat:'Extreme heat',al_hot:'Heat',al_frost2:'Severe frost',al_cold:'Frost',al_frost:'Ground frost',al_wind:'Strong wind',al_rain:'Heavy precipitation',al_storm:'Thunderstorm',al_uv:'Very high UV index',al_air:'Poor air quality',
+al_d_heat:'High up to {0}',al_d_frost:'Low down to {0}',al_d_wind:'Wind up to {0}',al_d_rain:'About {0} mm per day',al_d_storm:'Thunderstorm possible',al_d_uv:'UV index {0}',al_d_air:'AQI {0}',
+sv1:'Caution',sv2:'Danger',
+dir:['N','NE','E','SE','S','SW','W','NW'],
+wd_s:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],wd_l:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+mon:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+today_w:'today',tom_w:'tomorrow',
+sr_l:'Sunrise',ss_l:'Sunset',pr_l:'Daily precipitation',uv_l:'UV index',wi_l:'Max wind',
+ctop:'High {0}, low {1}',more:'Details',reg:'Region',
+sum_f:'{0}: {1}, {2}. Feels like {3}. High {4}, low {5}. Wind {6}, humidity {7}%.'
+}};
+
+/* ---------- WMO weather codes ---------- */
+const WMO={
+0:['Ясно','Ochiq','Clear'],1:['Преимущественно ясно','Asosan ochiq','Mostly clear'],2:['Переменная облачность','Oʻzgaruvchan bulutli','Partly cloudy'],3:['Пасмурно','Bulutli','Overcast'],
+45:['Туман','Tuman','Fog'],48:['Изморозь','Qirov tumani','Rime fog'],
+51:['Лёгкая морось','Yengil shivalash','Light drizzle'],53:['Морось','Shivalab yogʻish','Drizzle'],55:['Сильная морось','Kuchli shivalash','Heavy drizzle'],
+56:['Ледяная морось','Muzlovchi shivalash','Freezing drizzle'],57:['Ледяная морось','Muzlovchi shivalash','Freezing drizzle'],
+61:['Небольшой дождь','Yengil yomgʻir','Light rain'],63:['Дождь','Yomgʻir','Rain'],65:['Сильный дождь','Kuchli yomgʻir','Heavy rain'],
+66:['Ледяной дождь','Muzlovchi yomgʻir','Freezing rain'],67:['Ледяной дождь','Muzlovchi yomgʻir','Freezing rain'],
+71:['Небольшой снег','Yengil qor','Light snow'],73:['Снег','Qor','Snow'],75:['Сильный снег','Kuchli qor','Heavy snow'],77:['Снежная крупа','Qor donalari','Snow grains'],
+80:['Ливень','Jala','Rain showers'],81:['Сильный ливень','Kuchli jala','Heavy showers'],82:['Очень сильный ливень','Juda kuchli jala','Violent showers'],
+85:['Снегопад','Qor jalasi','Snow showers'],86:['Сильный снегопад','Kuchli qor jalasi','Heavy snow showers'],
+95:['Гроза','Momaqaldiroq','Thunderstorm'],96:['Гроза с градом','Momaqaldiroq va doʻl','Thunderstorm with hail'],99:['Гроза с сильным градом','Kuchli doʻlli momaqaldiroq','Severe hailstorm']};
+const WKEYS=Object.keys(WMO).map(Number);
+
+/* ---------- places ---------- */
+const REG={
+tashkent_city:{ru:'г. Ташкент',uz:'Toshkent shahri',en:'Tashkent City'},
+karakalpakstan:{ru:'Каракалпакстан',uz:'Qoraqalpogʻiston',en:'Karakalpakstan'},
+khorezm:{ru:'Хорезмская область',uz:'Xorazm viloyati',en:'Khorezm Region'},
+bukhara:{ru:'Бухарская область',uz:'Buxoro viloyati',en:'Bukhara Region'},
+navoi:{ru:'Навоийская область',uz:'Navoiy viloyati',en:'Navoi Region'},
+samarkand:{ru:'Самаркандская область',uz:'Samarqand viloyati',en:'Samarkand Region'},
+kashkadarya:{ru:'Кашкадарьинская область',uz:'Qashqadaryo viloyati',en:'Kashkadarya Region'},
+surkhandarya:{ru:'Сурхандарьинская область',uz:'Surxondaryo viloyati',en:'Surkhandarya Region'},
+jizzakh:{ru:'Джизакская область',uz:'Jizzax viloyati',en:'Jizzakh Region'},
+syrdarya:{ru:'Сырдарьинская область',uz:'Sirdaryo viloyati',en:'Syrdarya Region'},
+tashkent_region:{ru:'Ташкентская область',uz:'Toshkent viloyati',en:'Tashkent Region'},
+namangan:{ru:'Наманганская область',uz:'Namangan viloyati',en:'Namangan Region'},
+andijan:{ru:'Андижанская область',uz:'Andijon viloyati',en:'Andijan Region'},
+fergana:{ru:'Ферганская область',uz:'Fargʻona viloyati',en:'Fergana Region'}};
+/* A,B: mean and amplitude of annual temperature; R: typical daily range; wet: precipitation factor; aq: demo AQI base */
+const CITIES=[
+{id:'tashkent',lat:41.2995,lon:69.2401,region:'tashkent_city',ru:'Ташкент',uz:'Toshkent',en:'Tashkent',A:14.8,B:13.5,R:12,wet:1,aq:85},
+{id:'nukus',lat:42.4531,lon:59.6103,region:'karakalpakstan',ru:'Нукус',uz:'Nukus',en:'Nukus',A:12,B:16.5,R:13,wet:.5,aq:60},
+{id:'urgench',lat:41.55,lon:60.6333,region:'khorezm',ru:'Ургенч',uz:'Urganch',en:'Urgench',A:12.5,B:16,R:13,wet:.5,aq:65},
+{id:'khiva',lat:41.3783,lon:60.3639,region:'khorezm',ru:'Хива',uz:'Xiva',en:'Khiva',A:12.8,B:16,R:13,wet:.5,aq:60},
+{id:'bukhara',lat:39.7747,lon:64.4286,region:'bukhara',ru:'Бухара',uz:'Buxoro',en:'Bukhara',A:15.5,B:15,R:13,wet:.5,aq:70},
+{id:'navoi',lat:40.0844,lon:65.3792,region:'navoi',ru:'Навои',uz:'Navoiy',en:'Navoiy',A:14.5,B:15,R:13,wet:.55,aq:60},
+{id:'samarkand',lat:39.627,lon:66.975,region:'samarkand',ru:'Самарканд',uz:'Samarqand',en:'Samarkand',A:14,B:13.5,R:12,wet:1.1,aq:70},
+{id:'shahrisabz',lat:39.0578,lon:66.8342,region:'kashkadarya',ru:'Шахрисабз',uz:'Shahrisabz',en:'Shakhrisabz',A:15,B:13,R:12,wet:.9,aq:55},
+{id:'qarshi',lat:38.8606,lon:65.7891,region:'kashkadarya',ru:'Карши',uz:'Qarshi',en:'Karshi',A:17,B:14.5,R:13,wet:.6,aq:75},
+{id:'termez',lat:37.2242,lon:67.2783,region:'surkhandarya',ru:'Термез',uz:'Termiz',en:'Termez',A:20,B:14,R:12,wet:.55,aq:75},
+{id:'jizzakh',lat:40.1158,lon:67.8422,region:'jizzakh',ru:'Джизак',uz:'Jizzax',en:'Jizzakh',A:14.5,B:14,R:12,wet:.8,aq:65},
+{id:'gulistan',lat:40.4897,lon:68.7842,region:'syrdarya',ru:'Гулистан',uz:'Guliston',en:'Gulistan',A:14,B:14.5,R:12,wet:.8,aq:70},
+{id:'nurafshon',lat:41.0167,lon:69.3417,region:'tashkent_region',ru:'Нурафшан',uz:'Nurafshon',en:'Nurafshon',A:13.5,B:13.5,R:12,wet:1,aq:75},
+{id:'chirchiq',lat:41.4689,lon:69.5822,region:'tashkent_region',ru:'Чирчик',uz:'Chirchiq',en:'Chirchik',A:13.5,B:13.5,R:12,wet:1,aq:80},
+{id:'namangan',lat:41.0011,lon:71.6683,region:'namangan',ru:'Наманган',uz:'Namangan',en:'Namangan',A:13.5,B:14,R:11,wet:.9,aq:85},
+{id:'andijan',lat:40.7821,lon:72.3442,region:'andijan',ru:'Андижан',uz:'Andijon',en:'Andijan',A:13.5,B:14,R:11,wet:.95,aq:90},
+{id:'fergana',lat:40.3842,lon:71.7843,region:'fergana',ru:'Фергана',uz:'Fargʻona',en:'Fergana',A:14,B:14,R:11,wet:.9,aq:95},
+{id:'kokand',lat:40.5286,lon:70.9425,region:'fergana',ru:'Коканд',uz:'Qoʻqon',en:'Kokand',A:14,B:14,R:11,wet:.9,aq:85}];
+const byId={};CITIES.forEach(c=>{byId[c.id]=c;});
+/* ---------- helpers ---------- */
+const $=(s,r)=>(r||document).querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const pad=n=>n<10?'0'+n:''+n;
+const store={
+  get(k,d){try{const v=localStorage.getItem('uzw.'+k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem('uzw.'+k,JSON.stringify(v));}catch(e){}}
+};
+function guessLang(){const l=(navigator.language||'ru').toLowerCase();return l.startsWith('uz')?'uz':l.startsWith('en')?'en':'ru';}
+const TABS=['today','hourly','daily','map','compare','air','cities','agro','assistant'];
+const TAB_ICONS={
+today:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/>',
+hourly:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+daily:'<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+map:'<path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+compare:'<path d="M5 20V10M12 20V4M19 20v-7"/>',
+air:'<path d="M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"/>',
+cities:'<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
+agro:'<path d="M12 21V12"/><path d="M12 14C12 9.5 9 7 4.5 7 4.5 11.5 7.5 14 12 14z"/><path d="M12 16.5C12 12.5 14.5 10.5 19 10.5 19 14.5 16.5 16.5 12 16.5z"/>',
+assistant:'<path d="M4 5h16v11H9l-5 4z"/><path d="M9 10h6"/>'};
+const sv=(p,s)=>'<svg width="'+(s||18)+'" height="'+(s||18)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+const STAR='<path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z"/>';
+
+/* ---------- state ---------- */
+const state={
+  lang:LANGS.includes(store.get('lang',''))?store.get('lang',''):guessLang(),
+  city:byId[store.get('city','')]?store.get('city',''):'tashkent',
+  tab:'today',
+  u:Object.assign({temp:'c',wind:'ms',press:'mmhg'},store.get('units',{})),
+  theme:['auto','light','dark'].includes(store.get('theme',''))?store.get('theme',''):'auto',
+  favs:(store.get('favs',[])||[]).filter(x=>byId[x]),
+  cmp:(store.get('cmp',['tashkent','samarkand','nukus'])||[]).filter(x=>byId[x]).slice(0,4),
+  layer:'temp',mapDay:-1,hrRange:24,hrMetric:'temp',cmpMetric:'tmax',ctRegion:'all',ctSort:'name',
+  data:{},demo:false,loading:true,fetchedAt:null,asks:[],open:{}
+};
+if(!state.cmp.length)state.cmp=['tashkent'];
+function t(k){let s=(T[state.lang]&&T[state.lang][k]);if(s==null)s=T.ru[k];if(s==null)return k;if(typeof s!=='string')return s;const a=arguments;return s.replace(/\{(\d)\}/g,(m,i)=>a[+i+1]!==undefined?a[+i+1]:'');}
+const cname=c=>c[state.lang]||c.en;
+const rname=c=>REG[c.region][state.lang];
+
+/* ---------- formatting and units ---------- */
+function nf(n,d){d=d||0;if(n==null||isNaN(n))return '–';const a=Math.abs(n).toFixed(d);let s=state.lang==='en'?a:a.replace('.',',');return (n<0&&+a!==0?'−':'')+s;}
+const cv=c=>state.u.temp==='f'?c*9/5+32:c;
+const tt=c=>c==null?'–':nf(cv(c))+'°';
+const tu=()=>state.u.temp==='f'?'°F':'°C';
+const wv=ms=>state.u.wind==='kmh'?nf(ms*3.6)+' '+t('u_kmh'):nf(ms,1)+' '+t('u_ms');
+const pv=h=>state.u.press==='hpa'?nf(h)+' '+t('u_hpa'):nf(h*0.750062)+' '+t('u_mmhg');
+const wdir=d=>t('dir')[Math.round(((d%360)+360)%360/45)%8];
+function dparts(s){const y=+s.slice(0,4),m=+s.slice(5,7),d=+s.slice(8,10);return{y,m,d,wd:new Date(Date.UTC(y,m-1,d)).getUTCDay()};}
+function fday(s,long){const p=dparts(s);return (long?t('wd_l')[p.wd]:t('wd_s')[p.wd])+', '+p.d+' '+t('mon')[p.m-1];}
+const hh=tm=>tm.slice(11,16);
+const mins=tm=>+tm.slice(11,13)*60+(+tm.slice(14,16));
+function tashkentNow(){return new Date(Date.now()+5*3600e3);}
+
+/* ---------- weather kinds, icons, colors ---------- */
+function codeKey(c){let k=WKEYS[0];for(const w of WKEYS){if(w<=c)k=w;}return k;}
+const wtxt=c=>WMO[codeKey(c)][LANGS.indexOf(state.lang)];
+function kindOf(c){if(c<=1)return 'clear';if(c===2)return 'pcloud';if(c===3)return 'cloud';if(c<=48)return 'fog';if(c<=57)return 'drizzle';if(c<=67||(c>=80&&c<=82))return 'rain';if(c<=77||c===85||c===86)return 'snow';return 'storm';}
+const TINT={clear:'#F0A020',pcloud:'#8AA4B8',cloud:'#7F93A4',fog:'#8497A7',drizzle:'#2C7BD0',rain:'#2C7BD0',snow:'#6FB0E8',storm:'#6B4FCF',night:'#2B4B7E'};
+function ico(kind,day,size){
+  const cloud=(f,tr)=>'<path d="M18 44a9 9 0 0 1-1-18 13 13 0 0 1 25-3 10.5 10.5 0 0 1 4 21z" transform="translate('+tr+')" fill="var('+f+')"/>';
+  const rays=[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return '<line x1="'+(32+17*Math.cos(r)).toFixed(1)+'" y1="'+(32+17*Math.sin(r)).toFixed(1)+'" x2="'+(32+23*Math.cos(r)).toFixed(1)+'" y2="'+(32+23*Math.sin(r)).toFixed(1)+'"/>';}).join('');
+  const sun='<g stroke="var(--sun)" stroke-width="4" stroke-linecap="round">'+rays+'</g><circle cx="32" cy="32" r="11" fill="var(--sun)"/>';
+  const moon='<path d="M30.96 14.03A18 18 0 1 0 48.96 38.03A15 15 0 0 1 30.96 14.03Z" fill="var(--moon)"/>';
+  let g='';
+  if(kind==='clear')g=day?sun:moon;
+  else if(kind==='pcloud')g='<g transform="translate(-4 -6) scale(.78)">'+(day?sun:moon)+'</g>'+cloud('--cloud','6 8');
+  else if(kind==='cloud')g=cloud('--cloud','0 4');
+  else if(kind==='fog')g=cloud('--cloud','0 -8')+'<g stroke="var(--cloud-d)" stroke-width="3.5" stroke-linecap="round"><line x1="14" y1="46" x2="50" y2="46"/><line x1="20" y1="53" x2="56" y2="53"/></g>';
+  else if(kind==='drizzle')g=cloud('--cloud-d','0 -4')+'<g stroke="var(--rain)" stroke-width="3" stroke-linecap="round"><line x1="22" y1="46" x2="20" y2="51"/><line x1="32" y1="47" x2="30" y2="52"/><line x1="42" y1="46" x2="40" y2="51"/></g>';
+  else if(kind==='rain')g=cloud('--cloud-d','0 -4')+'<g stroke="var(--rain)" stroke-width="3.4" stroke-linecap="round"><line x1="22" y1="45" x2="18" y2="55"/><line x1="32" y1="45" x2="28" y2="55"/><line x1="42" y1="45" x2="38" y2="55"/></g>';
+  else if(kind==='snow')g=cloud('--cloud','0 -4')+'<g fill="var(--snow)"><circle cx="22" cy="50" r="2.8"/><circle cx="32" cy="56" r="2.8"/><circle cx="42" cy="50" r="2.8"/></g>';
+  else g=cloud('--cloud-d','0 -4')+'<path d="M35 36L24 51H31L28 62L42 45H34L38 36Z" fill="var(--sun)"/>';
+  return '<svg viewBox="0 0 64 64" width="'+(size||40)+'" height="'+(size||40)+'" aria-hidden="true">'+g+'</svg>';
+}
+const STOPS=[[-20,'#3A5BC7'],[-8,'#5B9BEA'],[2,'#9FD3F2'],[12,'#E8EFA8'],[20,'#FFD66B'],[28,'#FFA040'],[36,'#F2622A'],[44,'#B7242B']];
+function hexRgb(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+function lerpHex(a,b,f){const x=hexRgb(a),y=hexRgb(b);return '#'+[0,1,2].map(i=>pad2(Math.round(x[i]+(y[i]-x[i])*f))).join('');}
+function pad2(n){const s=n.toString(16);return s.length<2?'0'+s:s;}
+function scaleCol(stops,v){if(v<=stops[0][0])return stops[0][1];for(let i=1;i<stops.length;i++){if(v<=stops[i][0]){const a=stops[i-1],b=stops[i];return lerpHex(a[1],b[1],(v-a[0])/(b[0]-a[0]));}}return stops[stops.length-1][1];}
+const tcol=v=>scaleCol(STOPS,v);
+function onCol(hex){const c=hexRgb(hex);return(0.299*c[0]+0.587*c[1]+0.114*c[2])>150?'#0E2230':'#FFFFFF';}
+const AQC=['#2FB36B','#F2D13A','#F29A2E','#E5484D','#8F4FD3','#7E1F3B'];
+const AQB=[0,50,100,150,200,300,500];
+function aqiIdx(v){let i=0;while(i<5&&v>AQB[i+1])i++;return i;}
+
+/* ---------- data: live ---------- */
+const API='https://api.open-meteo.com/v1/forecast';
+const AIRAPI='https://air-quality-api.open-meteo.com/v1/air-quality';
+async function getJSON(url,ms){const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),ms);try{const r=await fetch(url,{signal:ctl.signal});if(!r.ok)throw new Error('HTTP '+r.status);return await r.json();}finally{clearTimeout(to);}}
+function norm(j,a){
+  const c=j.current,h=j.hourly,d=j.daily;
+  const hourly=h.time.map((tm,i)=>({tm:tm,t:h.temperature_2m[i],pop:h.precipitation_probability[i]||0,code:h.weather_code[i]||0,wind:h.wind_speed_10m[i]||0}));
+  const daily=d.time.map((dt,i)=>({dt:dt,code:d.weather_code[i]||0,tmax:d.temperature_2m_max[i],tmin:d.temperature_2m_min[i],psum:d.precipitation_sum[i]||0,pop:d.precipitation_probability_max[i]||0,sr:d.sunrise[i],ss:d.sunset[i],uv:d.uv_index_max[i]||0,wind:d.wind_speed_10m_max[i]||0}));
+  const cur={tm:c.time,t:c.temperature_2m,feels:c.apparent_temperature,hum:c.relative_humidity_2m,precip:c.precipitation||0,code:c.weather_code||0,cloud:c.cloud_cover,press:c.pressure_msl,wind:c.wind_speed_10m,dir:c.wind_direction_10m,gust:c.wind_gusts_10m,day:c.is_day===1};
+  let now=hourly.findIndex(x=>x.tm===cur.tm.slice(0,13)+':00');if(now<0)now=0;
+  const air=a&&a.current&&a.current.us_aqi!=null?{aqi:a.current.us_aqi,pm25:a.current.pm2_5,pm10:a.current.pm10}:null;
+  return{cur:cur,hourly:hourly,daily:daily,now:now,air:air};
+}
+async function loadLive(){
+  const la=CITIES.map(c=>c.lat).join(','),lo=CITIES.map(c=>c.lon).join(',');
+  const f=API+'?latitude='+la+'&longitude='+lo+'&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset,uv_index_max,wind_speed_10m_max&timezone=Asia%2FTashkent&forecast_days=10&wind_speed_unit=ms';
+  const q=AIRAPI+'?latitude='+la+'&longitude='+lo+'&current=us_aqi,pm10,pm2_5&timezone=Asia%2FTashkent';
+  const res=await Promise.all([getJSON(f,15000),getJSON(q,15000).catch(()=>null)]);
+  const fa=Array.isArray(res[0])?res[0]:[res[0]];
+  const aa=res[1]?(Array.isArray(res[1])?res[1]:[res[1]]):[];
+  if(fa.length!==CITIES.length)throw new Error('bad response');
+  const out={};CITIES.forEach((c,i)=>{out[c.id]=norm(fa[i],aa[i]||null);});
+  return out;
+}
+
+/* ---------- data: demo (climate based, clearly labelled) ---------- */
+function rng(seed){let a=seed>>>0;return function(){a=(a+0x6D2B79F5)|0;let x=Math.imul(a^(a>>>15),1|a);x=(x+Math.imul(x^(x>>>7),61|x))^x;return((x^(x>>>14))>>>0)/4294967296;};}
+const PM=[.3,.32,.38,.38,.25,.08,.03,.02,.04,.15,.28,.32];
+function sunTimes(lat,lon,y,m,d){
+  const doy=Math.floor((Date.UTC(y,m-1,d)-Date.UTC(y,0,0))/864e5);
+  const B=2*Math.PI*(doy-81)/364,eot=9.87*Math.sin(2*B)-7.53*Math.cos(B)-1.5*Math.sin(B);
+  const dec=23.44*Math.PI/180*Math.sin(2*Math.PI*(doy-81)/365),ph=lat*Math.PI/180;
+  const ch=(Math.sin(-0.833*Math.PI/180)-Math.sin(ph)*Math.sin(dec))/(Math.cos(ph)*Math.cos(dec));
+  const H=Math.acos(clamp(ch,-1,1))*180/Math.PI/15,noon=12+(75-lon)/15-eot/60;
+  const se=Math.sin(ph)*Math.sin(dec)+Math.cos(ph)*Math.cos(dec);
+  return{sr:noon-H,ss:noon+H,se:clamp(se,0,1)};
+}
+function hmStr(ds,h){const m=Math.round(h*60);return ds+'T'+pad(Math.floor(m/60)%24)+':'+pad(m%60);}
+function makeDemo(){
+  const now=tashkentNow(),y0=now.getUTCFullYear(),day0=Date.UTC(y0,now.getUTCMonth(),now.getUTCDate());
+  const out={};
+  CITIES.forEach((c,ci)=>{
+    const daily=[],hourly=[];
+    for(let d=0;d<10;d++){
+      const dt=new Date(day0+d*864e5),yy=dt.getUTCFullYear(),mo=dt.getUTCMonth(),dd=dt.getUTCDate();
+      const ds=yy+'-'+pad(mo+1)+'-'+pad(dd),doy=Math.floor((dt-Date.UTC(yy,0,0))/864e5);
+      const r=rng(ci*977+doy*31+yy);
+      const mean=c.A+c.B*Math.cos(2*Math.PI*(doy-200)/365)+(r()-.5)*5;
+      const wetP=PM[mo]*c.wet*1.6,roll=r();let code,psum=0,pop;
+      if(roll<wetP){const snow=mean<1;code=snow?(r()<.5?71:73):(r()<.55?61:(r()<.5?63:80));psum=+(snow?r()*4+.3:r()*9+.5).toFixed(1);pop=Math.round(60+r()*35);}
+      else if(roll<wetP+.22){code=r()<.5?2:3;pop=Math.round(r()*25);}
+      else{code=r()<.6?0:1;pop=Math.round(r()*10);}
+      const R=c.R*(code>=61?.7:code===3?.8:1),wmax=3+r()*6+(psum>0?2:0);
+      const st=sunTimes(c.lat,c.lon,yy,mo+1,dd);
+      const uv=+(12*Math.pow(st.se,1.6)*(1-.5*(code>=3?1:code===2?.5:0))).toFixed(1);
+      daily.push({dt:ds,code:code,tmax:mean+R/2,tmin:mean-R/2,psum:psum,pop:pop,sr:hmStr(ds,st.sr),ss:hmStr(ds,st.ss),uv:uv,wind:wmax});
+      for(let h=0;h<24;h++){
+        const tm=ds+'T'+pad(h)+':00';
+        hourly.push({tm:tm,t:mean+(R/2)*Math.cos(2*Math.PI*(h-15)/24)+(r()-.5)*.8,pop:clamp(Math.round(pop*(.6+r()*.6)),0,100),code:code>=61&&r()<.35?3:code,wind:wmax*(.35+.45*Math.max(0,Math.sin(Math.PI*(h-5)/15)))});
+      }
+    }
+    const nh=now.getUTCHours(),hr=hourly[nh],r2=rng(ci*31+nh+now.getUTCDate()*7);
+    const wet=hr.code>=51,hum=clamp(Math.round(78-(hr.t-10)*1.4+(wet?14:0)+(r2()-.5)*10),15,96);
+    const d0=daily[0],nowM=nh*60+now.getUTCMinutes();
+    const cur={tm:hr.tm.slice(0,13)+':'+pad(now.getUTCMinutes()),t:hr.t,feels:hr.t-(hr.t<12?hr.wind*.8:-(hum-40)*(hr.t>25?.03:0)),hum:hum,precip:wet?+(r2()*1.2).toFixed(1):0,code:hr.code,cloud:{clear:5,pcloud:50,cloud:90}[kindOf(hr.code)]||95,press:1012+Math.round((r2()-.5)*14),wind:hr.wind,dir:Math.round(r2()*359),gust:hr.wind*1.6,day:nowM>=mins(d0.sr)&&nowM<=mins(d0.ss)};
+    const mo=now.getUTCMonth(),season=1+.35*Math.cos(2*Math.PI*(mo+.5)/12);
+    const aqi=Math.round(clamp(c.aq*season*(.85+r2()*.3),18,260));
+    const air={aqi:aqi,pm25:+(aqi*.38).toFixed(1),pm10:+(aqi*.68).toFixed(1)};
+    out[c.id]={cur:cur,hourly:hourly,daily:daily,now:nh,air:air};
+  });
+  return out;
+}
+const D=id=>state.data[id];
+function isDayAt(d,tm){const dd=d.daily.find(x=>x.dt===tm.slice(0,10));return dd?(tm>=dd.sr&&tm<=dd.ss):true;}
+
+/* ---------- analysis: alerts and tips ---------- */
+function alertsFor(id){
+  const d=D(id);if(!d)return[];
+  const out=[],month=+d.daily[0].dt.slice(5,7);
+  const add=(type,sev,day,detail)=>{if(!out.some(a=>a.type===type))out.push({type:type,sev:sev,day:day,detail:detail});};
+  d.daily.slice(0,3).forEach((x,i)=>{
+    if(x.tmax>=40)add('heat',2,x.dt,t('al_d_heat',tt(x.tmax)));else if(x.tmax>=35)add('hot',1,x.dt,t('al_d_heat',tt(x.tmax)));
+    if(x.tmin<=-15)add('frost2',2,x.dt,t('al_d_frost',tt(x.tmin)));else if(x.tmin<=-10)add('cold',1,x.dt,t('al_d_frost',tt(x.tmin)));
+    else if(x.tmin<=0&&[3,4,5,9,10,11].indexOf(month)>=0)add('frost',1,x.dt,t('al_d_frost',tt(x.tmin)));
+    if(x.wind>=15)add('wind',2,x.dt,t('al_d_wind',wv(x.wind)));else if(x.wind>=10)add('wind',1,x.dt,t('al_d_wind',wv(x.wind)));
+    if(x.psum>=30)add('rain',2,x.dt,t('al_d_rain',nf(x.psum)));else if(x.psum>=15)add('rain',1,x.dt,t('al_d_rain',nf(x.psum)));
+    if(x.uv>=11)add('uv',1,x.dt,t('al_d_uv',nf(x.uv)));
+  });
+  const hs=d.hourly.slice(d.now,d.now+72).find(x=>x.code>=95);if(hs)add('storm',1,hs.tm.slice(0,10),t('al_d_storm'));
+  if(d.air&&d.air.aqi>=151)add('air',d.air.aqi>=201?2:1,d.daily[0].dt,t('al_d_air',nf(d.air.aqi)));
+  return out.sort((a,b)=>b.sev-a.sev||(a.day<b.day?-1:1));
+}
+function wearKey(ft){return ft<=-5?'w1':ft<=7?'w2':ft<=16?'w3':ft<=25?'w4':ft<=33?'w5':'w6';}
+function umbText(d,from,to){
+  const hrs=d.hourly.slice(from,to),pop=Math.max.apply(null,hrs.map(x=>x.pop).concat([0]));
+  const ps=d.daily[0].psum,snow=hrs.some(x=>kindOf(x.code)==='snow');
+  if(pop<20&&ps<.5)return t('u1');
+  if(snow)return t('u4',pop,nf(ps,1));
+  return ps>=.5&&pop>=50?t('u3',pop,nf(ps,1)):t('u2',pop);
+}
+function walkBest(d){
+  let best=null;
+  d.hourly.slice(d.now,d.now+24).forEach(x=>{
+    const h=+x.tm.slice(11,13);if(h<7||h>20)return;
+    const sc=-Math.abs(x.t-20)-x.wind*.6-x.pop/8-(kindOf(x.code)==='rain'||kindOf(x.code)==='storm'?15:0);
+    if(!best||sc>best.sc)best={sc:sc,x:x};
+  });
+  if(!best||best.sc<-14)return null;return best.x;
+}
+function tipsFor(id){
+  const d=D(id),c=d.cur,td=d.daily[0],tips=[];
+  tips.push({k:'t_wear',p:[t(wearKey(c.feels))]});
+  tips.push({k:'t_umb',p:[umbText(d,d.now,d.now+12)]});
+  const wb=walkBest(d);
+  tips.push({k:'t_walk',p:[wb?t('wk1',hh(wb.tm)+(wb.tm.slice(0,10)!==c.tm.slice(0,10)?' ('+t('tom_w')+')':''),tt(wb.t)+', '+wtxt(wb.code).toLowerCase()):t('wk0')]});
+  const uvl=td.uv<3?1:td.uv<6?2:td.uv<8?3:td.uv<11?4:5,hp=[t('h_uv',nf(td.uv),t('uvl'+uvl))];
+  if(d.air){const ai=aqiIdx(d.air.aqi);hp.push(t('h_air',t('aq'+(ai+1)).toLowerCase(),nf(d.air.aqi)));}
+  tips.push({k:'t_health',p:hp});
+  const nx=d.hourly.slice(d.now,d.now+12),minT=Math.min.apply(null,nx.map(x=>x.t)),pmax=Math.max.apply(null,nx.map(x=>x.pop)),maxG=Math.max(c.gust||0,td.wind);
+  let rp;
+  if(minT<=1&&(pmax>30||nx.some(x=>kindOf(x.code)==='fog')))rp=t('r_ice');
+  else if(nx.some(x=>kindOf(x.code)==='fog')||kindOf(c.code)==='fog')rp=t('r_fog');
+  else if(maxG>=14)rp=t('r_wind',wv(maxG));else rp=t('r_ok');
+  tips.push({k:'t_road',p:[rp]});
+  const d3=d.daily.slice(0,3),f3=Math.min.apply(null,d3.map(x=>x.tmin)),p3=d3.reduce((s,x)=>s+x.psum,0),mx3=Math.max.apply(null,d3.map(x=>x.tmax));
+  tips.push({k:'t_garden',p:[f3<=0?t('g_frost',tt(f3)):(mx3>=35&&p3<1)?t('g_dry'):p3>=5?t('g_rain',nf(p3,1)):t('g_ok')]});
+  return tips;
+}
+/* ---------- chart engine ---------- */
+const pending=[];
+function niceTicks(min,max,n){
+  if(max-min<1e-9)max=min+1;
+  const raw=(max-min)/(n||4),mag=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/mag;
+  const step=(f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*mag;
+  const lo=Math.floor(min/step+1e-9)*step,hi=Math.ceil(max/step-1e-9)*step,ticks=[];
+  for(let v=lo;v<=hi+step/2;v+=step)ticks.push(+v.toFixed(6));
+  return{lo:lo,hi:hi,ticks:ticks};
+}
+function mountChart(el,o){
+  if(!el)return;
+  const cw0=el.clientWidth||640,W=Math.max(cw0,o.n*(o.minStep||26)),H=o.h||260,P={l:46,r:30,t:18,b:30};
+  const vals=[];o.series.forEach(s=>s.v.forEach(v=>{if(v!=null&&!isNaN(v))vals.push(v);}));
+  let mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+  if(o.zero)mn=Math.min(mn,0);
+  const nt=niceTicks(mn,mx,4),span=nt.hi-nt.lo||1;
+  const X=i=>P.l+(o.n>1?i*(W-P.l-P.r)/(o.n-1):(W-P.l-P.r)/2),Y=v=>P.t+(1-(v-nt.lo)/span)*(H-P.t-P.b);
+  let s='<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(o.label||'')+'">';
+  nt.ticks.forEach(v=>{const y=Y(v).toFixed(1);s+='<line class="gl" x1="'+P.l+'" x2="'+(W-P.r)+'" y1="'+y+'" y2="'+y+'"/><text class="ax" x="'+(P.l-8)+'" y="'+(+y+4)+'" text-anchor="end">'+esc(o.yfmt?o.yfmt(v):nf(v))+'</text>';});
+  if(o.bars){
+    const bw=Math.max(3,(W-P.l-P.r)/o.n*.55),bh=(H-P.t-P.b)*.3;
+    o.bars.forEach((v,i)=>{const h=bh*clamp(v,0,100)/100;if(h>.6)s+='<rect x="'+(X(i)-bw/2).toFixed(1)+'" y="'+(H-P.b-h).toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="2" fill="var(--rain)" fill-opacity=".4"/>';});
+  }
+  const sp=o.n>1?(W-P.l-P.r)/(o.n-1):60,step=Math.max(1,Math.ceil(62/sp));
+  o.labels.forEach((l,i)=>{if(i%step===0)s+='<text class="ax" x="'+X(i).toFixed(1)+'" y="'+(H-9)+'" text-anchor="middle">'+esc(l)+'</text>';});
+  o.series.forEach(se=>{
+    let d='',first=-1,last=-1;
+    se.v.forEach((v,i)=>{if(v==null||isNaN(v))return;d+=(d?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1);if(first<0)first=i;last=i;});
+    if(!d)return;
+    if(se.area)s+='<path d="'+d+'L'+X(last).toFixed(1)+' '+(H-P.b)+'L'+X(first).toFixed(1)+' '+(H-P.b)+'Z" fill="'+se.c+'" fill-opacity=".13"/>';
+    s+='<path class="ln" d="'+d+'" stroke="'+se.c+'"/>';
+    if(o.n<=14)se.v.forEach((v,i)=>{if(v!=null)s+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="3.6" fill="'+se.c+'" stroke="var(--panel)" stroke-width="2"/>';});
+  });
+  if(o.peaks){
+    const v=o.series[0].v;let a=0,b=0;v.forEach((x,i)=>{if(x>v[a])a=i;if(x<v[b])b=i;});
+    [[a,-9],[b,16]].forEach(p=>{s+='<text x="'+X(p[0]).toFixed(1)+'" y="'+(Y(v[p[0]])+p[1]).toFixed(1)+'" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">'+esc(o.yfmt?o.yfmt(v[p[0]]):nf(v[p[0]]))+'</text>';});
+  }
+  s+='<line class="guide" y1="'+P.t+'" y2="'+(H-P.b)+'" stroke="var(--ink-2)" stroke-dasharray="3 3" visibility="hidden"/></svg>';
+  el.innerHTML='<div class="cscroll"><div class="cw" style="width:'+W+'px">'+s+'<div class="ctip" hidden></div></div></div>'+(o.legend?'<div class="legend">'+o.legend+'</div>':'');
+  const cw=el.querySelector('.cw'),svg=cw.querySelector('svg'),tip=cw.querySelector('.ctip'),guide=svg.querySelector('.guide');
+  const mv=e=>{
+    const r=svg.getBoundingClientRect();if(!r.width)return;
+    const px=(e.clientX-r.left)*(W/r.width);
+    const i=clamp(Math.round((px-P.l)/(o.n>1?(W-P.l-P.r)/(o.n-1):1)),0,o.n-1),x=X(i);
+    guide.setAttribute('x1',x);guide.setAttribute('x2',x);guide.setAttribute('visibility','visible');
+    tip.innerHTML=o.tip(i);tip.hidden=false;
+    const tw=tip.offsetWidth;let left=x+12;if(left+tw>W)left=x-tw-12;tip.style.left=Math.max(0,left)+'px';
+  };
+  cw.addEventListener('pointermove',mv);cw.addEventListener('pointerdown',mv);
+  cw.addEventListener('pointerleave',()=>{tip.hidden=true;guide.setAttribute('visibility','hidden');});
+}
+function chartHost(id,o){pending.push({id:id,o:o});return '<div id="'+id+'"></div>';}
+
+/* ---------- small view helpers ---------- */
+function loadingHtml(){return '<div class="skel" aria-label="'+esc(t('loading'))+'"><i></i><i></i><i></i></div>';}
+function seg(act,items,cur,key){return '<div class="seg" role="group">'+items.map(i=>'<button type="button" data-act="'+act+'"'+(key?' data-k="'+key+'"':'')+' data-v="'+i[0]+'" aria-pressed="'+(String(i[0])===String(cur))+'">'+esc(i[1])+'</button>').join('')+'</div>';}
+function pill(txt,col){return '<span class="pill" style="background:'+col+';color:'+onCol(col)+'">'+esc(txt)+'</span>';}
+function favBtn(id){const on=state.favs.indexOf(id)>=0;return '<button class="btn" type="button" data-act="fav" data-city="'+id+'" aria-pressed="'+on+'"><span class="star" style="color:'+(on?'var(--sun)':'inherit')+'">'+sv(on?STAR.replace('<path','<path fill="currentColor"'):STAR,16)+'</span>'+esc(on?t('fav_del'):t('fav_add'))+'</button>';}
+function windArrow(dir){return '<svg class="wind-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate('+Math.round(dir+180)+'deg)" aria-hidden="true"><path d="M12 20V4M12 4l-6 6M12 4l6 6"/></svg>';}
+function uvLevel(v){return v<3?1:v<6?2:v<8?3:v<11?4:5;}
+
+/* ---------- Today ---------- */
+function sunTile(d){
+  const td=d.daily[0],cur=d.cur,a=mins(td.sr),b=mins(td.ss),n=mins(cur.tm),f=clamp((n-a)/(b-a),0,1),day=n>=a&&n<=b;
+  const x=100-80*Math.cos(Math.PI*f),y=100-80*Math.sin(Math.PI*f),len=b-a;
+  return '<div class="tile"><h3>'+esc(t('sunrise'))+' / '+esc(t('sunset'))+'</h3>'
+   +'<svg class="sunarc" viewBox="0 0 200 118" aria-hidden="true"><line x1="8" y1="100" x2="192" y2="100" stroke="var(--line)" stroke-width="2"/><path d="M20 100A80 80 0 0 1 180 100" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="3 5"/>'
+   +'<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="8" fill="'+(day?'var(--sun)':'var(--moon)')+'" opacity="'+(day?1:.7)+'"/>'
+   +'<text class="ax" x="20" y="115" text-anchor="middle">'+hh(td.sr)+'</text><text class="ax" x="180" y="115" text-anchor="middle">'+hh(td.ss)+'</text></svg>'
+   +'<p>'+esc(t('daylen',Math.floor(len/60),len%60))+'</p></div>';
+}
+function vToday(){
+  const c=byId[state.city],d=D(c.id);if(!d)return loadingHtml();
+  const cur=d.cur,td=d.daily[0],kind=kindOf(cur.code),tint=cur.day?TINT[kind]:TINT.night;
+  let h='<section class="hero" style="--tint:'+tint+'"><div><div class="eyebrow">'+esc(rname(c))+'</div><h1>'+esc(cname(c))+'</h1>'
+   +'<div class="muted">'+esc(fday(cur.tm.slice(0,10),true))+', '+hh(cur.tm)+'</div>'
+   +'<div class="bigt">'+nf(cv(cur.t))+'<small>'+tu()+'</small></div>'
+   +'<div class="cond">'+esc(wtxt(cur.code))+'</div>'
+   +'<div class="meta">'+esc(t('feels',tt(cur.feels)))+' · '+esc(t('hilo',tt(td.tmax),tt(td.tmin)))+'</div>'
+   +'<div class="row acts">'+favBtn(c.id)
+   +'<button class="btn" type="button" data-act="copy">'+sv('<rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/>',16)+esc(t('copy'))+'</button>'
+   +'<button class="btn" type="button" data-act="refresh">'+sv('<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',16)+esc(t('refresh'))+'</button></div></div>'
+   +'<div class="hicon">'+ico(kind,cur.day,180)+'</div></section>';
+  const uvl=uvLevel(td.uv),ai=d.air?aqiIdx(d.air.aqi):-1;
+  h+='<div class="tiles">';
+  h+='<div class="tile"><h3>'+esc(t('wind'))+'</h3><div class="v">'+windArrow(cur.dir)+wv(cur.wind)+'</div><p>'+esc(wdir(cur.dir))+' · '+esc(t('gust',wv(cur.gust)))+'</p></div>';
+  h+='<div class="tile"><h3>'+esc(t('hum'))+'</h3><div class="v">'+Math.round(cur.hum)+'<small>%</small></div><div class="bar"><i style="width:'+clamp(cur.hum,0,100)+'%"></i></div></div>';
+  h+='<div class="tile"><h3>'+esc(t('press'))+'</h3><div class="v">'+pv(cur.press).replace(/ (.+)$/,'<small>$1</small>')+'</div></div>';
+  h+='<div class="tile"><h3>'+esc(t('uv'))+'</h3><div class="v">'+nf(td.uv,td.uv<10?1:0)+'</div><div class="scale"><i style="left:'+clamp(td.uv/12*100,0,100)+'%"></i></div><p>'+esc(t('uvl'+uvl))+'</p></div>';
+  h+='<div class="tile"><h3>'+esc(t('cloud'))+'</h3><div class="v">'+Math.round(cur.cloud)+'<small>%</small></div><div class="bar"><i style="width:'+clamp(cur.cloud,0,100)+'%"></i></div></div>';
+  h+='<div class="tile"><h3>'+esc(t('precip'))+'</h3><div class="v">'+nf(td.psum,1)+'<small>'+esc(t('mm'))+'</small></div><p>'+esc(t('precip_p',td.pop))+'</p></div>';
+  h+='<div class="tile"><h3>'+esc(t('aqi'))+'</h3>'+(d.air?'<div class="v">'+nf(d.air.aqi)+'</div><p>'+pill(t('aq'+(ai+1)),AQC[ai])+'</p>':'<div class="v">–</div><p>'+esc(t('aqi_none'))+'</p>')+'</div>';
+  h+=sunTile(d)+'</div>';
+  h+='<section class="sec card"><h3>'+esc(t('next_h'))+'</h3><div class="hrs">'+d.hourly.slice(d.now,d.now+14).map((x,i)=>'<div class="hr'+(i===0?' now':'')+'"><small>'+(i===0?esc(t('now')):hh(x.tm))+'</small>'+ico(kindOf(x.code),isDayAt(d,x.tm),34)+'<b>'+tt(x.t)+'</b><small class="rain">'+(x.pop>=20?x.pop+'%':'&nbsp;')+'</small></div>').join('')+'</div></section>';
+  const al=alertsFor(c.id);
+  h+='<section class="sec card"><h3>'+esc(t('alerts_h'))+'</h3>'
+   +(al.length?al.map(a=>'<div class="alert s'+a.sev+'"><div><b>'+esc(t('al_'+a.type))+' · '+esc(fday(a.day))+'</b><span class="muted small">'+esc(a.detail)+'</span></div><div style="margin-left:auto"><span class="pill" style="border:1px solid currentColor">'+esc(t('sv'+a.sev))+'</span></div></div>').join('')
+     :'<div class="alert s0"><div>'+esc(t('alerts_none'))+'</div></div>')
+   +'<p class="muted small" style="margin-top:10px">'+esc(t('alerts_note'))+'</p></section>';
+  h+='<section class="sec"><h2>'+esc(t('tips_h'))+'</h2><div class="grid">'+tipsFor(c.id).map(x=>'<div class="card tip"><h3>'+esc(t(x.k))+'</h3>'+x.p.map(p=>'<p>'+esc(p)+'</p>').join('')+'</div>').join('')+'</div></section>';
+  return h;
+}
+
+/* ---------- Hourly ---------- */
+function vHourly(){
+  const c=byId[state.city],d=D(c.id);if(!d)return loadingHtml();
+  const n=state.hrRange,hs=d.hourly.slice(d.now,d.now+n),m=state.hrMetric;
+  const wc=ms=>state.u.wind==='kmh'?ms*3.6:ms;
+  const labels=hs.map(x=>{const hr=hh(x.tm);return hr==='00:00'?t('wd_s')[dparts(x.tm.slice(0,10)).wd]:hr;});
+  let o;
+  if(m==='temp')o={series:[{v:hs.map(x=>cv(x.t)),c:'var(--s1)',area:true}],bars:hs.map(x=>x.pop),yfmt:v=>nf(v)+'°',peaks:true,legend:'<span><i style="background:var(--s1)"></i>'+esc(t('m_temp'))+', '+tu()+'</span><span><i style="background:var(--rain);opacity:.5"></i>'+esc(t('pop_l'))+'</span>',
+    tip:i=>{const x=hs[i];return '<b>'+esc(fday(x.tm.slice(0,10)))+', '+hh(x.tm)+'</b>'+esc(wtxt(x.code))+'<br>'+tt(x.t)+' · '+esc(t('pop_l'))+' '+x.pop+'%<br>'+esc(t('wind'))+' '+wv(x.wind);}};
+  else if(m==='pop')o={series:[{v:hs.map(x=>x.pop),c:'var(--rain)',area:true}],zero:true,yfmt:v=>nf(v)+'%',legend:'<span><i style="background:var(--rain)"></i>'+esc(t('pop_l'))+'</span>',
+    tip:i=>{const x=hs[i];return '<b>'+hh(x.tm)+'</b>'+esc(t('pop_l'))+' '+x.pop+'%<br>'+esc(wtxt(x.code));}};
+  else o={series:[{v:hs.map(x=>wc(x.wind)),c:'var(--s3)',area:true}],zero:true,yfmt:v=>nf(v),legend:'<span><i style="background:var(--s3)"></i>'+esc(t('wind'))+', '+esc(state.u.wind==='kmh'?t('u_kmh'):t('u_ms'))+'</span>',
+    tip:i=>{const x=hs[i];return '<b>'+hh(x.tm)+'</b>'+esc(t('wind'))+' '+wv(x.wind);}};
+  o.n=hs.length;o.labels=labels;o.h=280;o.label=t('hr_t');
+  return '<div class="pagehead"><h2>'+esc(t('hr_t'))+' · '+esc(cname(c))+'</h2><div class="row">'+seg('hrrange',[[24,t('h24')],[48,t('h48')]],n)+seg('hrmetric',[['temp',t('m_temp')],['pop',t('m_pop')],['wind',t('m_wind')]],m)+'</div></div>'
+   +'<section class="card">'+chartHost('chHr',o)+'</section>'
+   +'<section class="sec card"><div class="hrs">'+hs.map((x,i)=>'<div class="hr'+(i===0?' now':'')+'"><small>'+(i===0?esc(t('now')):hh(x.tm))+'</small>'+ico(kindOf(x.code),isDayAt(d,x.tm),34)+'<b>'+tt(x.t)+'</b><small class="rain">'+(x.pop>=20?x.pop+'%':'&nbsp;')+'</small><small>'+nf(wc(x.wind),state.u.wind==='kmh'?0:1)+'</small></div>').join('')+'</div></section>';
+}
+
+/* ---------- Daily ---------- */
+function vDaily(){
+  const c=byId[state.city],d=D(c.id);if(!d)return loadingHtml();
+  const ds=d.daily,gmin=Math.min.apply(null,ds.map(x=>x.tmin)),gmax=Math.max.apply(null,ds.map(x=>x.tmax)),sp=gmax-gmin||1;
+  let wi=0,ci=0,pi=0;ds.forEach((x,i)=>{if(x.tmax>ds[wi].tmax)wi=i;if(x.tmax<ds[ci].tmax)ci=i;if(x.psum>ds[pi].psum)pi=i;});
+  const o={n:ds.length,h:260,label:t('dy_t'),labels:ds.map(x=>t('wd_s')[dparts(x.dt).wd]+' '+dparts(x.dt).d),zero:false,minStep:48,
+    series:[{v:ds.map(x=>cv(x.tmax)),c:'var(--s2)'},{v:ds.map(x=>cv(x.tmin)),c:'var(--s1)'}],bars:ds.map(x=>x.pop),yfmt:v=>nf(v)+'°',
+    legend:'<span><i style="background:var(--s2)"></i>'+esc(t('c_tmax'))+'</span><span><i style="background:var(--s1)"></i>'+esc(t('c_tmin'))+'</span><span><i style="background:var(--rain);opacity:.5"></i>'+esc(t('pop_l'))+'</span>',
+    tip:i=>{const x=ds[i];return '<b>'+esc(fday(x.dt,true))+'</b>'+esc(wtxt(x.code))+'<br>'+tt(x.tmax)+' / '+tt(x.tmin)+'<br>'+esc(t('pop_l'))+' '+x.pop+'%';}};
+  let h='<div class="pagehead"><h2>'+esc(t('dy_t'))+' · '+esc(cname(c))+'</h2><div class="row">'
+   +'<span class="pill" style="background:var(--panel-2)">'+esc(t('warm_day'))+': '+esc(fday(ds[wi].dt))+' ('+tt(ds[wi].tmax)+')</span>'
+   +'<span class="pill" style="background:var(--panel-2)">'+esc(t('cold_day'))+': '+esc(fday(ds[ci].dt))+' ('+tt(ds[ci].tmax)+')</span>'
+   +'<span class="pill" style="background:var(--panel-2)">'+esc(t('wet_day'))+': '+(ds[pi].psum>=.1?esc(fday(ds[pi].dt))+' ('+nf(ds[pi].psum,1)+' '+esc(t('mm'))+')':esc(t('dry10')))+'</span></div></div>';
+  h+='<section class="card">'+chartHost('chDay',o)+'</section><section class="sec card"><div class="days">';
+  ds.forEach((x,i)=>{
+    const l=(x.tmin-gmin)/sp*100,w=Math.max(5,(x.tmax-x.tmin)/sp*100);
+    h+='<div class="day"><button type="button" data-act="dayopen" aria-expanded="false"><span><b>'+esc(fday(x.dt))+'</b><br><small class="muted">'+esc(i===0?t('today_w'):i===1?t('tom_w'):wtxt(x.code))+'</small></span>'
+     +'<span>'+ico(kindOf(x.code),true,34)+'</span><span class="pp">'+(x.pop>=20?x.pop+'%':'')+'</span><span class="lo">'+tt(x.tmin)+'</span>'
+     +'<span class="rng"><i style="left:'+l.toFixed(1)+'%;width:'+Math.min(w,100-l).toFixed(1)+'%;background:linear-gradient(90deg,'+tcol(x.tmin)+','+tcol(x.tmax)+')"></i></span><span class="hi">'+tt(x.tmax)+'</span></button>'
+     +'<div class="dd"><div><span>'+esc(t('sr_l'))+'</span>'+hh(x.sr)+'</div><div><span>'+esc(t('ss_l'))+'</span>'+hh(x.ss)+'</div><div><span>'+esc(t('pr_l'))+'</span>'+nf(x.psum,1)+' '+esc(t('mm'))+'</div><div><span>'+esc(t('uv_l'))+'</span>'+nf(x.uv,x.uv<10?1:0)+'</div><div><span>'+esc(t('wi_l'))+'</span>'+wv(x.wind)+'</div><div><span>'+esc(t('pop_l'))+'</span>'+x.pop+'%</div></div></div>';
+  });
+  return h+'</div></section>';
+}
+/* ================= Agro room: AI chat grounded in verified Uzhydromet and Ministry of Agriculture data ================= */
+Object.assign(T.ru,{
+n_agro:'Агрочат',n_assistant:'Быстрые ответы',
+ag_title:'Агропомощник',ag_sub:'Погода и сельское хозяйство, по данным Узгидромета',ag_region:'Область',ag_none:'Не выбрано',ag_crop:'Культура или направление',
+ag_ph:'Спросите о погоде, заморозках, поливе, посеве, защите сада…',ag_send:'Отправить',ag_stop:'Стоп',ag_new:'Новый чат',ag_hint:'Enter отправляет, Shift+Enter переносит строку.',
+ag_nochat:'Чат недоступен в этом просмотре',ag_empty_h:'Спросите о погоде и работе в поле',
+ag_empty_p:'Я отвечаю по прогнозу Узгидромета на 13–15 ноября и месячному прогнозу на ноябрь, а советы по защите культур беру из рекомендаций Минсельхоза и учёных. Если данных не хватает, скажу об этом и подскажу, где посмотреть.',
+ag_think:'Думаю…',ag_copy:'Копировать',ag_copied:'Скопировано',ag_copyfail:'Не удалось скопировать',ag_partial:'Ответ прервался, показана часть.',ag_retry:'Повторить',ag_data:'Погода и источники',
+ag_fresh:'Данные собраны {0}',ag_stale:'Данные могли устареть',
+ag_stale_x:'Прогноз относится к 13–15 ноября 2026. Сегодня {0}, поэтому он мог устареть. Актуальный прогноз смотрите на сайте Узгидромета, а чтобы обновить данные в этом помощнике, попросите Claude переопубликовать страницу.',
+ag_tbl_h:'Прогноз Узгидромета на 14 ноября',ag_reg:'Регион',ag_night:'Ночь',ag_day:'День',ag_tnote:'Температура в °C. Источник: Узгидромет через nuz.uz и zamon.uz, публикации от 13.11.2026.',
+ag_facts_h:'Что известно по стране',ag_month_h:'Ноябрь 2026, месячный прогноз',ag_src_h:'Источники',ag_gaps_h:'Чего в данных нет',ag_pub:'Опубликовано',
+ag_ru_note:'Данные и источники приведены на русском языке.',
+ag_foot:'Помощник отвечает по данным выше и общим агрономическим знаниям. Это не официальное предупреждение. Перед обработкой растений препаратами читайте этикетку, а в спорных случаях спрашивайте местного агронома.',
+ag_q0:'Какая погода ожидается в моей области на выходных и что это значит для работ в поле?',ag_q1:'Нужно ли укрывать виноград и гранат в ближайшие дни?',ag_q2:'Есть ли риск заморозков для озимой пшеницы и что делать?',ag_q3:'Стоит ли поливать сад на этой неделе?',ag_q4:'Как защитить лук и чеснок от заморозков?',ag_q5:'Когда лучше делать обрезку сада в ноябре?',
+ag_e_not_granted:'Вы не разрешили странице использовать Claude. Чат недоступен, но данные о погоде остаются.',ag_e_sampling_disabled:'Claude недоступен для вашей учётной записи или организации.',ag_e_rate_limited:'Слишком много запросов или исчерпан лимит. Подождите и отправьте вопрос снова.',ag_e_session_expired:'Сессия истекла. Войдите в Claude заново и повторите вопрос.',ag_e_refused:'Claude не стал отвечать на этот запрос. Переформулируйте вопрос.',ag_e_empty_completion:'Ответа не получилось. Уточните вопрос и отправьте снова.',ag_e_prompt_too_large:'Диалог стал слишком длинным. Нажмите «Новый чат».',ag_e_upstream_error:'Связь прервалась. Нажмите «Повторить».',ag_e_default:'Не удалось получить ответ. Попробуйте ещё раз.',
+ag_c0:'Озимая пшеница',ag_c1:'Хлопчатник',ag_c2:'Виноград',ag_c3:'Плодовый сад (яблоня, груша, гранат, хурма)',ag_c4:'Овощи открытого грунта',ag_c5:'Лук и чеснок',ag_c6:'Теплица',ag_c7:'Бахча',ag_c8:'Животноводство',ag_c9:'Огород и приусадебный участок'});
+Object.assign(T.uz,{
+n_agro:'Agrochat',n_assistant:'Tezkor javoblar',
+ag_title:'Agroyordamchi',ag_sub:'Ob-havo va qishloq xoʻjaligi, Oʻzgidromet maʼlumotlari asosida',ag_region:'Viloyat',ag_none:'Tanlanmagan',ag_crop:'Ekin yoki yoʻnalish',
+ag_ph:'Ob-havo, sovuq urishi, sugʻorish, ekish, bogʻni himoya qilish haqida soʻrang…',ag_send:'Yuborish',ag_stop:'Toʻxtatish',ag_new:'Yangi chat',ag_hint:'Enter yuboradi, Shift+Enter yangi qator qoʻshadi.',
+ag_nochat:'Bu koʻrinishda chat mavjud emas',ag_empty_h:'Ob-havo va dala ishlari haqida soʻrang',
+ag_empty_p:'Men Oʻzgidromet ning 13–15-noyabr bashorati va noyabr oyi bashorati asosida javob beraman, ekinlarni himoya qilish boʻyicha maslahatlarni Qishloq xoʻjaligi vazirligi va olimlar tavsiyalaridan olaman. Maʼlumot yetmasa, buni ochiq aytaman va qayerdan koʻrish mumkinligini koʻrsataman.',
+ag_think:'Oʻylayapman…',ag_copy:'Nusxalash',ag_copied:'Nusxalandi',ag_copyfail:'Nusxalab boʻlmadi',ag_partial:'Javob uzilib qoldi, qismi koʻrsatilgan.',ag_retry:'Qayta urinish',ag_data:'Ob-havo va manbalar',
+ag_fresh:'Maʼlumotlar yigʻilgan vaqt: {0}',ag_stale:'Maʼlumotlar eskirgan boʻlishi mumkin',
+ag_stale_x:'Bashorat 2026-yil 13–15-noyabrga tegishli. Bugun {0}, shuning uchun u eskirgan boʻlishi mumkin. Dolzarb bashoratni Oʻzgidromet saytida koʻring, bu yordamchidagi maʼlumotlarni yangilash uchun Claude dan sahifani qayta eʼlon qilishni soʻrang.',
+ag_tbl_h:'Oʻzgidromet ning 14-noyabr bashorati',ag_reg:'Hudud',ag_night:'Tun',ag_day:'Kun',ag_tnote:'Harorat °C da. Manba: Oʻzgidromet, nuz.uz va zamon.uz orqali, 13.11.2026 eʼlonlari.',
+ag_facts_h:'Mamlakat boʻyicha maʼlumot',ag_month_h:'2026-yil noyabr, oylik bashorat',ag_src_h:'Manbalar',ag_gaps_h:'Maʼlumotda yoʻq narsalar',ag_pub:'Eʼlon qilingan',
+ag_ru_note:'Maʼlumotlar va manbalar rus tilida berilgan.',
+ag_foot:'Yordamchi yuqoridagi maʼlumotlar va umumiy agronomik bilimlarga tayanib javob beradi. Bu rasmiy ogohlantirish emas. Oʻsimliklarni preparatlar bilan ishlashdan oldin yorligʻini oʻqing, shubhali holatda mahalliy agronomdan soʻrang.',
+ag_q0:'Mening viloyatimda dam olish kunlari ob-havo qanday boʻladi va bu dala ishlariga qanday taʼsir qiladi?',ag_q1:'Yaqin kunlarda uzum va anorni yopish kerakmi?',ag_q2:'Kuzgi bugʻdoyga sovuq urish xavfi bormi va nima qilish kerak?',ag_q3:'Shu hafta bogʻni sugʻorish kerakmi?',ag_q4:'Piyoz va sarimsoqni sovuqdan qanday himoya qilish mumkin?',ag_q5:'Noyabrda bogʻni qachon butash yaxshi?',
+ag_e_not_granted:'Siz sahifaga Claude dan foydalanishga ruxsat bermadingiz. Chat mavjud emas, lekin ob-havo maʼlumotlari qoladi.',ag_e_sampling_disabled:'Claude sizning hisobingiz yoki tashkilotingiz uchun mavjud emas.',ag_e_rate_limited:'Soʻrovlar juda koʻp yoki limit tugagan. Biroz kutib, savolni qayta yuboring.',ag_e_session_expired:'Seans tugadi. Claude ga qayta kiring va savolni takrorlang.',ag_e_refused:'Claude bu soʻrovga javob bermadi. Savolni boshqacha yozing.',ag_e_empty_completion:'Javob chiqmadi. Savolni aniqlashtirib, qayta yuboring.',ag_e_prompt_too_large:'Suhbat juda uzun boʻlib ketdi. «Yangi chat» tugmasini bosing.',ag_e_upstream_error:'Aloqa uzildi. «Qayta urinish» tugmasini bosing.',ag_e_default:'Javob olib boʻlmadi. Yana urinib koʻring.',
+ag_c0:'Kuzgi bugʻdoy',ag_c1:'Paxta',ag_c2:'Uzum',ag_c3:'Meva bogʻi (olma, nok, anor, xurmo)',ag_c4:'Ochiq dala sabzavotlari',ag_c5:'Piyoz va sarimsoq',ag_c6:'Issiqxona',ag_c7:'Poliz',ag_c8:'Chorvachilik',ag_c9:'Tomorqa va hovli',});
+Object.assign(T.en,{
+n_agro:'Agro chat',n_assistant:'Quick answers',
+ag_title:'Agro assistant',ag_sub:'Weather and farming, based on Uzhydromet data',ag_region:'Region',ag_none:'Not selected',ag_crop:'Crop or area',
+ag_ph:'Ask about weather, frost, irrigation, sowing, orchard protection…',ag_send:'Send',ag_stop:'Stop',ag_new:'New chat',ag_hint:'Enter sends, Shift+Enter adds a new line.',
+ag_nochat:'Chat is not available in this view',ag_empty_h:'Ask about weather and field work',
+ag_empty_p:'I answer from the Uzhydromet forecast for 13–15 November and the monthly November outlook, and take crop protection advice from Ministry of Agriculture and scientists recommendations. If the data is missing, I will say so and point you to where to look.',
+ag_think:'Thinking…',ag_copy:'Copy',ag_copied:'Copied',ag_copyfail:'Could not copy',ag_partial:'The answer was cut off; showing what arrived.',ag_retry:'Retry',ag_data:'Weather and sources',
+ag_fresh:'Data collected {0}',ag_stale:'Data may be outdated',
+ag_stale_x:'The forecast covers 13–15 November 2026. Today is {0}, so it may be out of date. Check the Uzhydromet site for the current forecast, and ask Claude to republish the page to refresh the data in this assistant.',
+ag_tbl_h:'Uzhydromet forecast for 14 November',ag_reg:'Region',ag_night:'Night',ag_day:'Day',ag_tnote:'Temperature in °C. Source: Uzhydromet via nuz.uz and zamon.uz, posts of 13.11.2026.',
+ag_facts_h:'Nationwide',ag_month_h:'November 2026 monthly outlook',ag_src_h:'Sources',ag_gaps_h:'Not in the data',ag_pub:'Published',
+ag_ru_note:'Data and sources are in Russian.',
+ag_foot:'The assistant answers from the data above and general agronomy knowledge. It is not an official warning. Read the label before treating plants with any product, and ask a local agronomist when in doubt.',
+ag_q0:'What weather is expected in my region this weekend and what does it mean for field work?',ag_q1:'Do I need to cover grapes and pomegranates in the coming days?',ag_q2:'Is there a frost risk for winter wheat and what should I do?',ag_q3:'Should I irrigate the orchard this week?',ag_q4:'How do I protect onions and garlic from frost?',ag_q5:'When is the best time to prune the orchard in November?',
+ag_e_not_granted:'You did not allow this page to use Claude. Chat is unavailable, but the weather data stays.',ag_e_sampling_disabled:'Claude is not available for your account or organization.',ag_e_rate_limited:'Too many requests or your limit is used up. Wait and send the question again.',ag_e_session_expired:'Your session expired. Sign in to Claude again and repeat the question.',ag_e_refused:'Claude did not answer this request. Rephrase the question.',ag_e_empty_completion:'No answer was produced. Clarify the question and send it again.',ag_e_prompt_too_large:'The conversation got too long. Press New chat.',ag_e_upstream_error:'The connection dropped. Press Retry.',ag_e_default:'Could not get an answer. Try again.',
+ag_c0:'Winter wheat',ag_c1:'Cotton',ag_c2:'Grapes',ag_c3:'Orchard (apple, pear, pomegranate, persimmon)',ag_c4:'Field vegetables',ag_c5:'Onions and garlic',ag_c6:'Greenhouse',ag_c7:'Melons',ag_c8:'Livestock',ag_c9:'Kitchen garden and backyard'});
+
+/* ---------- verified data: collected 2026-11-14 about 09:05 Tashkent time from the pages in sources ---------- */
+const AGD={
+  asOf:'2026-11-14T09:05:00+05:00',
+  sources:[
+    {name:'nuz.uz: прогноз Узгидромета на 14 ноября',url:'https://nuz.uz/2026/11/13/sinoptiki-rasskazali-kakoj-budet-pogoda-v-uzbekistane-14-noyabrya/',pub:'13.11.2026',note:'Пересказ прогноза Узгидромета'},
+    {name:'nuz.uz: прогноз на выходные 14–15 ноября',url:'https://nuz.uz/2026/11/13/v-uzbekistane-na-vyhodnyh-potepleet-do-15-gradusov/',pub:'13.11.2026',note:'Пересказ прогноза Узгидромета'},
+    {name:'zamon.uz: после дождя тёплые дни',url:'https://zamon.uz/ru/2026/11/13/posle-dozhdya-tyoplye-dni-kakoj-budet-pogoda-v-uzbekistane',pub:'13.11.2026, 12:40',note:'Ссылается на новость Узгидромета на gov.uz'},
+    {name:'Узгидромет (gov.uz): ноябрь 2026',url:'https://gov.uz/ru/hydromet/news/view/239181',pub:'28.10.2026',note:'Официальный месячный прогноз агентства'},
+    {name:'Минсельхоз: защита культур при резком похолодании',url:'https://yuz.uz/ru/news/minselxoz-dalo-rekomendatsii-po-soxraneniyu-selskoxozyaystvennx-kultur-pri-rezkom-poxolodanii',pub:'09.01.2023',note:'Рекомендации 2023 года, общие для любого сильного похолодания'},
+    {name:'Daryo: рекомендации фермерам при заморозках',url:'https://daryo.uz/en/2024/12/18/uzbekistan-issues-frost-protection-guidelines-for-farmers-amid-cold-snap',pub:'декабрь 2024',note:'Рекомендации учёных Минсельхоза'},
+    {name:'Официальный раздел Узгидромета',url:'https://gov.uz/ru/hydromet',pub:'',note:'Свежие прогнозы и предупреждения'}
+  ],
+  regions:[
+    {n:'г. Ташкент',night:'+2…+4',day:'+13…+15',x:'Без осадков, ночью и утром возможен туман, ветер восточный 3–8 м/с. Одна из публикаций даёт на 14 ноября +1…+3 ночью и +12…+14 днём.'},
+    {n:'Каракалпакстан, Хорезм',night:'−7…−2',day:'+8…+13',x:'Ночные заморозки.'},
+    {n:'Бухара, Навои, Самарканд, Джизак, Сырдарья, Ташкентская обл.',night:'0…+5',day:'+10…+15',x:'Местами туман.'},
+    {n:'Кашкадарья, Сурхандарья',night:'0…+5',day:'+13…+18',x:'Самые тёплые районы.'},
+    {n:'Ферганская долина',night:'0…+5, местами −2',day:'+8…+13',x:'Местами туман. Наманган и Андижан в статье отдельно не названы.'},
+    {n:'Предгорья и горы',night:'−7…−2',day:'0…+5',x:'Местами туман.'}
+  ],
+  facts:[
+    'На 13–15 ноября: сухо и относительно тепло. Ночью 0…+5 °C, днём постепенно до +10…+15 °C, местами туман.',
+    'Ветер восточный 7–12 м/с (источник: Узгидромет через zamon.uz и nuz.uz). 13 ноября в южных районах порывы 13–18 м/с.',
+    '13 ноября в предгорьях и горах возможны дождь и снег, местами сильные. На выходные 14–15 ноября осадков по стране не ожидается.',
+    'Ночные заморозки на 14 ноября: Каракалпакстан и Хорезм (до −7), предгорья и горы (до −7), местами в Ферганской долине (до −2).'
+  ],
+  month:[
+    'Средняя температура около нормы, местами на 1–1,5 °C выше.',
+    '1-я декада тёплая: ночью +5…+10, днём +17…+22. 2-я и 3-я декады прохладнее: ночью от −2 до +3…+8, днём +5…+10 до +15…+20.',
+    'Минимум около −2 °C ночью во 2-й и 3-й декадах (по регионам прогноз не детализирован).',
+    'Осадки в основном дождь, на отдельных днях, возможен кратковременный снег при похолоданиях. Сумма за месяц ниже нормы или около нормы.',
+    'Норма осадков за месяц, мм: большая часть страны 30–55, предгорья и горы 60–110, северо-запад и пустыни 8–17, Ферганская долина и часть юга 20–30.'
+  ],
+  agro:[
+    'Минсельхоз (2023, при резком похолодании): озимые поздних сроков и всходы в фазе 1–2 листьев опрыскивают перепревшим местным навозом; лук и чеснок укрывают плёнкой или мульчируют (навоз, рисовая шелуха, опилки, солома); закалённые культуры (морковь, лук, чеснок, свёкла, капуста, зелень) не страдают заметно при −2…−3 °C.',
+    'В садах при заморозках открывают арыки и поливают междурядья (тёплая вода держит температуру почвы и деревьев), откладывают обрезку на холодные дни, стволы хурмы обматывают сеном или стеблями кукурузы и риса, между рядами складывают дымовые кучи из сена, соломы и навоза и наблюдают за температурой.',
+    'Виноград, гранат и инжир без укрытия закрывают сеном или рисовой соломой либо присыпают землёй. Заморозки опаснее всего с 3 до 5 часов утра.',
+    'В теплицах держат температуру под культуру: огурец гибнет ниже 0 °C, помидор около −1…−2 °C, корни помидора страдают около +7 °C. Сжигание старых камер поднимает температуру на 2–3 °C. Клубнику и цитрусовые накрывают вторым слоем плёнки, снег с крыши убирают.',
+    'Скот: в помещении +7…+17 °C (мелкий рогатый скот +10…+12), поить тёплой водой (взрослому КРС около +10…+12 °C), давать сочные корма.',
+    'После заморозков (рекомендации учёных, Daryo 2024): листовые подкормки борсодержащими препаратами и микроэлементами, азотные удобрения, укрытие плёнкой, регулярный полив для сохранения влаги в почве. Лук, чеснок, шалот, репа и перец холодостойки: переносят −10…−15 °C, под снегом до −20…−25 °C.'
+  ],
+  gaps:[
+    'Нет прогноза на 16 ноября и позже: проверяйте раздел Узгидромета.',
+    'Нет прогноза по отдельным районам, городам кроме Ташкента и по часам.',
+    'Нет данных о влажности почвы, фазах развития культур и вредителях в вашем хозяйстве.',
+    'Нет официальных агрометеорологических бюллетеней: рекомендации выше общие и могут не совпадать с местным агросоветом.'
+  ]
+};
+const AG_ASOF=new Date(AGD.asOf);
+const agAgeH=()=>(Date.now()-AG_ASOF.getTime())/3600e3;
+const agStale=()=>agAgeH()>30;
+const AG={turns:[],sample:null,busy:false,ctl:null,draft:'',region:store.get('agRegion',null),crop:store.get('agCrop',''),dataOpen:false};
+(function(){const a=store.get('agTurns',[]);if(Array.isArray(a))AG.turns=a.filter(x=>x&&(x.r==='u'||x.r==='a')&&typeof x.c==='string'&&x.c);})();
+const agSave=()=>store.set('agTurns',AG.turns.slice(-30));
+const AGM={ru:['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'],uz:['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'],en:['January','February','March','April','May','June','July','August','September','October','November','December']};
+function agFmt(d){const m=AGM[state.lang]||AGM.ru;return d.getUTCDate()+' '+m[d.getUTCMonth()]+' '+d.getUTCFullYear()+', '+pad(d.getUTCHours())+':'+pad(d.getUTCMinutes());}
+const agRegion=()=>AG.region&&REG[AG.region]?AG.region:byId[state.city].region;
+
+/* ---------- safe text to html ---------- */
+function agInline(s){
+  s=esc(s);
+  s=s.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');
+  s=s.replace(/(https?:\/\/[^\s<)]+[^\s<).,;:!?])/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+  return s;
+}
+function agMd(src){
+  const lines=String(src).replace(/\r/g,'').split('\n');let out='',list=null,para=[];
+  const fp=()=>{if(para.length){out+='<p>'+agInline(para.join(' '))+'</p>';para=[];}};
+  const cl=()=>{if(list){out+='</'+list+'>';list=null;}};
+  lines.forEach(l=>{
+    const b=l.match(/^\s*[-*•]\s+(.*)$/),n=l.match(/^\s*\d+[.)]\s+(.*)$/),h=l.match(/^\s*#{1,4}\s+(.*)$/);
+    if(b||n){fp();const k=b?'ul':'ol';if(list!==k){cl();out+='<'+k+'>';list=k;}out+='<li>'+agInline((b||n)[1])+'</li>';}
+    else if(!l.trim()){fp();cl();}
+    else if(h){fp();cl();out+='<p><strong>'+agInline(h[1])+'</strong></p>';}
+    else{cl();para.push(l.trim());}
+  });
+  fp();cl();return out;
+}
+
+/* ---------- prompt ---------- */
+function agDataText(){
+  let s='ВЕРИФИЦИРОВАННЫЕ ДАННЫЕ (собраны '+AGD.asOf+', период прогноза: 13–15 ноября 2026)\n\nПрогноз Узгидромета на 14 ноября по регионам (ночь / день, °C):\n';
+  AGD.regions.forEach(r=>{s+='- '+r.n+': ночь '+r.night+', день '+r.day+'. '+r.x+'\n';});
+  s+='\nОбщее по стране:\n'+AGD.facts.map(x=>'- '+x).join('\n');
+  s+='\n\nМесячный прогноз Узгидромета на ноябрь 2026 (опубликован 28.10.2026):\n'+AGD.month.map(x=>'- '+x).join('\n');
+  s+='\n\nАгрономические рекомендации из источников:\n'+AGD.agro.map(x=>'- '+x).join('\n');
+  s+='\n\nЧЕГО В ДАННЫХ НЕТ:\n'+AGD.gaps.map(x=>'- '+x).join('\n');
+  s+='\n\nИСТОЧНИКИ (ссылайся по названию и дате):\n'+AGD.sources.map(x=>'- '+x.name+(x.pub?' ('+x.pub+')':'')+' '+x.url).join('\n');
+  return s;
+}
+function agRules(){
+  const langName={ru:'русский',uz:'узбекский',en:'английский'}[state.lang];
+  return 'Ты Агропомощник Узбекистана: консультант по погоде и сельскому хозяйству для фермеров, садоводов и огородников. Отвечай на языке вопроса (русский, узбекский или английский; язык интерфейса сейчас: '+langName+'), по-деловому, коротко и по делу, без заголовков. Допустимы короткие списки и выделение **жирным**.\n\n'
+  +'ПРАВИЛА О ПОГОДЕ:\n'
+  +'1. Любые факты о погоде (температура, осадки, ветер, заморозки, даты) бери ТОЛЬКО из блока данных ниже. Не придумывай числа, не используй память и не додумывай прогноз на даты вне данных.\n'
+  +'2. Если вопрос касается периода, региона или показателя, которых в данных нет, прямо скажи, что у тебя нет такого прогноза, и отправь на https://gov.uz/ru/hydromet (Узгидромет). Можешь дать общий совет на случай разных вариантов погоды, явно назвав его общим.\n'
+  +'3. После погодных фактов указывай источник в скобках, например (Узгидромет через zamon.uz, 13.11.2026).\n'
+  +'4. Если данные относятся к прошедшим датам или могли устареть, скажи об этом в начале ответа.\n'
+  +'5. Различай: «по данным источников» и «общий агрономический совет». Рекомендации из блока данных называй рекомендациями Минсельхоза или учёных с датой публикации.\n'
+  +'6. Не выдавай свои ответы за официальное предупреждение. Не называй точные дозы и названия пестицидов. Для обработки препаратами советуй следовать этикетке и спросить местного агронома.\n'
+  +'7. Если выбрана область, сопоставь её с ближайшим регионом из данных и скажи, как именно ты её сопоставил. Если культура выбрана, учитывай её.\n\n'
+  +'Сейчас в Ташкенте: '+agFmt(tashkentNow())+'. Возраст данных: '+Math.round(agAgeH())+' ч.\n\n'+agDataText();
+}
+function agCtx(){
+  const r=agRegion(),c=AG.crop!==''?t('ag_c'+AG.crop):'';
+  const rn=REG[r].ru,cn=AG.crop!==''?T.ru['ag_c'+AG.crop]:'';
+  return '[Контекст пользователя: область: '+rn+(cn?'; культура: '+cn:'')+']\n';
+}
+function agInput(){
+  const out=[{role:'user',content:agRules()}];
+  const hist=AG.turns.slice(-12);
+  while(hist.length&&hist[0].r!=='u')hist.shift();
+  hist.forEach(x=>out.push({role:x.r==='u'?'user':'assistant',content:x.c}));
+  return out;
+}
+
+/* ---------- view ---------- */
+function agBubble(x,i){
+  if(x.r==='u')return '<div class="agm u"><div class="agb">'+esc(x.shown||x.c)+'</div></div>';
+  const last=i===AG.turns.length-1;
+  return '<div class="agm a"><div class="agb'+(x.e?' err':'')+'">'+(x.e?esc(x.c):agMd(x.c))+'</div><div class="agt">'
+   +(x.p?'<span class="muted small">'+esc(t('ag_partial'))+'</span>':'')
+   +(x.e?'':'<button class="btn sm" type="button" data-ag="copy" data-i="'+i+'">'+esc(t('ag_copy'))+'</button>')
+   +(last&&(x.e||x.p)?'<button class="btn sm" type="button" data-ag="retry">'+esc(t('ag_retry'))+'</button>':'')+'</div></div>';
+}
+function agSide(){
+  const st=agStale(),ru=state.lang!=='ru';
+  let h='<aside class="agside" id="agSide" data-open="'+AG.dataOpen+'">';
+  if(st)h+='<div class="agwarn"><b>'+esc(t('ag_stale'))+'.</b> '+esc(t('ag_stale_x',agFmt(tashkentNow())))+'</div>';
+  h+='<div class="card"><h3>'+esc(t('ag_tbl_h'))+'</h3><div class="tblw"><table class="agtbl"><thead><tr><th>'+esc(t('ag_reg'))+'</th><th>'+esc(t('ag_night'))+'</th><th>'+esc(t('ag_day'))+'</th></tr></thead><tbody>'
+   +AGD.regions.map(r=>'<tr><td>'+esc(r.n)+'</td><td class="nw">'+esc(r.night)+'</td><td class="nw">'+esc(r.day)+'</td></tr>').join('')+'</tbody></table></div><p class="muted small" style="margin-top:8px">'+esc(t('ag_tnote'))+'</p>'+(ru?'<p class="muted small">'+esc(t('ag_ru_note'))+'</p>':'')+'</div>';
+  h+='<div class="card"><h3>'+esc(t('ag_facts_h'))+'</h3><ul class="agl">'+AGD.facts.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>';
+  h+='<div class="card"><h3>'+esc(t('ag_month_h'))+'</h3><ul class="agl">'+AGD.month.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div>';
+  h+='<div class="card"><h3>'+esc(t('ag_src_h'))+'</h3><div class="agsrc">'+AGD.sources.map(s=>'<div><a href="'+esc(s.url)+'" target="_blank" rel="noopener">'+esc(s.name)+'</a><small>'+(s.pub?esc(t('ag_pub'))+': '+esc(s.pub)+'. ':'')+esc(s.note)+'</small></div>').join('')+'</div></div>';
+  h+='<div class="card"><h3>'+esc(t('ag_gaps_h'))+'</h3><ul class="agl">'+AGD.gaps.map(x=>'<li>'+esc(x)+'</li>').join('')+'</ul></div></aside>';
+  return h;
+}
+function vAgro(){
+  const st=agStale(),can=!!AG.sample,r=agRegion();
+  let h='<div class="pagehead"><div class="agbrand"><span class="aglogo" aria-hidden="true">'+sv('<path d="M12 21V12"/><path d="M12 14C12 9.5 9 7 4.5 7 4.5 11.5 7.5 14 12 14z"/><path d="M12 16.5C12 12.5 14.5 10.5 19 10.5 19 14.5 16.5 16.5 12 16.5z"/>',22)+'</span><div><h2>'+esc(t('ag_title'))+'</h2><div class="muted small">'+esc(t('ag_sub'))+'</div></div></div>'
+   +'<div class="row"><span class="agbadge'+(st?' stale':'')+'"><i></i>'+esc(st?t('ag_stale'):t('ag_fresh',agFmt(new Date(AG_ASOF.getTime()+5*3600e3))))+'</span>'
+   +'<button class="btn agdt" type="button" data-ag="data" aria-expanded="'+AG.dataOpen+'">'+esc(t('ag_data'))+'</button>'
+   +'<button class="btn" type="button" data-ag="new">'+esc(t('ag_new'))+'</button></div></div>';
+  h+='<div class="aglay"><section class="agchat" aria-label="'+esc(t('ag_title'))+'">';
+  h+='<div class="agctx"><div><label for="agRegion">'+esc(t('ag_region'))+'</label><select id="agRegion">'
+   +Object.keys(REG).map(k=>'<option value="'+k+'"'+(k===r?' selected':'')+'>'+esc(REG[k][state.lang])+'</option>').join('')+'</select></div>'
+   +'<div><label for="agCrop">'+esc(t('ag_crop'))+'</label><select id="agCrop"><option value="">'+esc(t('ag_none'))+'</option>'
+   +[0,1,2,3,4,5,6,7,8,9].map(i=>'<option value="'+i+'"'+(String(i)===String(AG.crop)?' selected':'')+'>'+esc(t('ag_c'+i))+'</option>').join('')+'</select></div></div>';
+  h+='<div class="agmsgs" id="agMsgs" aria-live="polite">';
+  if(AG.turns.length)h+=AG.turns.map(agBubble).join('');
+  else h+='<div class="agempty"><h3>'+esc(t('ag_empty_h'))+'</h3><p>'+esc(t('ag_empty_p'))+'</p><div class="agchips">'+[0,1,2,3,4,5].map(i=>'<button class="agchip" type="button" data-ag="q" data-i="'+i+'">'+esc(t('ag_q'+i))+'</button>').join('')+'</div></div>';
+  if(AG.busy)h+='<div class="agm a" id="agLive"><div class="agb"><span class="agthink"><i></i><i></i><i></i><span style="margin-left:6px">'+esc(t('ag_think'))+'</span></span></div></div>';
+  h+='</div><div class="agcomp"><div class="agbox"><textarea id="agIn" rows="1" maxlength="2000" placeholder="'+esc(t('ag_ph'))+'" aria-label="'+esc(t('ag_ph'))+'"'+(can?'':' disabled')+'>'+esc(AG.draft)+'</textarea>'
+   +'<button class="btn" type="button" data-ag="stop"'+(AG.busy?'':' hidden')+'>'+esc(t('ag_stop'))+'</button>'
+   +'<button class="btn pri" type="button" data-ag="send"'+(AG.busy?' hidden':'')+(can?'':' disabled')+'>'+esc(t('ag_send'))+'</button></div>'
+   +'<div class="aghint"><span class="muted small">'+esc(t('ag_hint'))+'</span><span class="muted small">'+(can?'':esc(t('ag_nochat')))+'</span></div></div></section>';
+  h+=agSide()+'</div><p class="muted small agfoot">'+esc(t('ag_foot'))+'</p>';
+  return h;
+}
+function agMount(){const ta=$('#agIn');if(ta){ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,160)+'px';}}
+function agNearEnd(){return window.innerHeight+window.scrollY>document.documentElement.scrollHeight-260;}
+function agScroll(){window.scrollTo({top:document.documentElement.scrollHeight,behavior:'auto'});}
+
+/* ---------- ask ---------- */
+function agView(){return state.tab==='agro';}
+async function agAsk(text){
+  if(AG.busy||!AG.sample)return;
+  text=String(text||'').trim();if(!text)return;
+  AG.turns.push({r:'u',c:agCtx()+text,shown:text});
+  agRun();
+}
+async function agRun(){
+  AG.busy=true;AG.ctl=new AbortController();
+  if(agView()){renderView();agScroll();}
+  let live='';
+  try{
+    const res=await AG.sample(agInput(),{cache:false,signal:AG.ctl.signal,onText:u=>{
+      live=u.text;const el=$('#agLive');
+      if(el){const near=agNearEnd();el.querySelector('.agb').innerHTML=agMd(live);if(near)agScroll();}
+    }});
+    AG.turns.push({r:'a',c:res.text,p:!!res.truncated});
+  }catch(e){
+    const code=e&&e.code;
+    if(code==='cancelled'){if(e.text)AG.turns.push({r:'a',c:e.text,p:true});else AG.turns.pop();}
+    else if(code==='refused')AG.turns.push({r:'a',c:t('ag_e_refused'),e:true});
+    else if(e&&e.text)AG.turns.push({r:'a',c:e.text,p:true});
+    else AG.turns.push({r:'a',c:t('ag_e_'+code)!=='ag_e_'+code?t('ag_e_'+code):t('ag_e_default'),e:true});
+    if(code==='not_granted'||code==='sampling_disabled'||code==='capability_disabled')AG.sample=null;
+  }
+  AG.busy=false;AG.ctl=null;agSave();
+  if(agView()){renderView();agScroll();const ta=$('#agIn');if(ta&&AG.sample)ta.focus();}
+}
+function agRetry(){
+  if(AG.busy||!AG.sample)return;
+  while(AG.turns.length&&AG.turns[AG.turns.length-1].r==='a')AG.turns.pop();
+  if(AG.turns.length)agRun();
+}
+function agSend(){const ta=$('#agIn');if(!ta)return;const v=ta.value;if(!v.trim())return;ta.value='';AG.draft='';agAsk(v);}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-ag]');if(!el)return;
+  const a=el.dataset.ag;
+  if(a==='q')agAsk(t('ag_q'+el.dataset.i));
+  else if(a==='send')agSend();
+  else if(a==='stop'){if(AG.ctl)AG.ctl.abort();}
+  else if(a==='new'){if(AG.busy&&AG.ctl)AG.ctl.abort();AG.turns=[];agSave();renderView();}
+  else if(a==='retry')agRetry();
+  else if(a==='data'){AG.dataOpen=!AG.dataOpen;const s=$('#agSide');if(s)s.dataset.open=String(AG.dataOpen);el.setAttribute('aria-expanded',String(AG.dataOpen));if(AG.dataOpen&&s)s.scrollIntoView({block:'start'});}
+  else if(a==='copy'){
+    const x=AG.turns[+el.dataset.i];if(!x)return;
+    const ok=()=>toast(t('ag_copied')),fail=()=>{try{const ta=document.createElement('textarea');ta.value=x.c;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();const r=document.execCommand('copy');document.body.removeChild(ta);toast(r?t('ag_copied'):t('ag_copyfail'));}catch(z){toast(t('ag_copyfail'));}};
+    try{navigator.clipboard.writeText(x.c).then(ok,fail);}catch(z){fail();}
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(e.target.id==='agIn'&&e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();agSend();}
+});
+document.addEventListener('input',e=>{
+  if(e.target.id==='agIn'){AG.draft=e.target.value;agMount();}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='agRegion'){AG.region=e.target.value;store.set('agRegion',AG.region);}
+  else if(e.target.id==='agCrop'){AG.crop=e.target.value;store.set('agCrop',AG.crop);}
+});
+(async function(){
+  try{const c=window.claude;if(c&&c.use)AG.sample=await c.use('sample');}catch(e){AG.sample=null;}
+  if(agView()&&!AG.busy)renderView();
+})();
+/* ---------- Map ---------- */
+const MAPW=900,MAPH=470;
+const MAPPTS=(function(){
+  const pts=CITIES.map(c=>({id:c.id,x:(c.lon-55.5)*50,y:(43.4-c.lat)*66.2}));
+  pts.forEach(p=>{p.ox=p.x;p.oy=p.y;});
+  for(let it=0;it<90;it++){
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const a=pts[i],b=pts[j];let dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy);
+      if(dist<48){if(dist<.01){dx=1;dy=0;dist=1;}const push=(48-dist)/2,ux=dx/dist,uy=dy/dist;a.x-=ux*push;a.y-=uy*push;b.x+=ux*push;b.y+=uy*push;}
+    }
+  }
+  return pts;
+})();
+const LSTOPS={
+  temp:STOPS,
+  precip:[[0,'#EEF3F6'],[2,'#BFD9F2'],[8,'#6AA8E6'],[20,'#1F5FB5']],
+  wind:[[0,'#EEF3F6'],[5,'#9AD3D8'],[10,'#2FA0AB'],[18,'#0B5A66']],
+  uv:[[0,'#2FB36B'],[3,'#B8D94A'],[6,'#F2D13A'],[8,'#F29A2E'],[11,'#E5484D'],[13,'#8F4FD3']]};
+function mapInfo(id){
+  const d=D(id);if(!d)return{v:null,txt:'–',col:'#9AA9B5'};
+  const k=state.mapDay,L=state.layer;let v,txt;
+  if(L==='temp'){v=k<0?d.cur.t:d.daily[k].tmax;txt=nf(cv(v));}
+  else if(L==='precip'){v=k<0?d.cur.precip:d.daily[k].psum;txt=nf(v,v<10?1:0);}
+  else if(L==='wind'){v=k<0?d.cur.wind:d.daily[k].wind;txt=state.u.wind==='kmh'?nf(v*3.6):nf(v,0);}
+  else if(L==='uv'){v=d.daily[Math.max(k,0)].uv;txt=nf(v,v<10?1:0);}
+  else{if(!d.air)return{v:null,txt:'–',col:'#9AA9B5'};v=d.air.aqi;txt=nf(v);return{v:v,txt:txt,col:AQC[aqiIdx(v)]};}
+  return{v:v,txt:txt,col:scaleCol(LSTOPS[L],v)};
+}
+function legendFor(L){
+  if(L==='aqi')return{grad:'linear-gradient(90deg,'+AQC.map((c,i)=>c+' '+(i/6*100).toFixed(1)+'%,'+c+' '+((i+1)/6*100).toFixed(1)+'%').join(',')+')',lo:'0',hi:'300+'};
+  const st=LSTOPS[L],a=st[0][0],b=st[st.length-1][0];
+  const grad='linear-gradient(90deg,'+st.map(s=>s[1]+' '+((s[0]-a)/(b-a)*100).toFixed(1)+'%').join(',')+')';
+  if(L==='temp')return{grad:grad,lo:nf(cv(a))+'°',hi:nf(cv(b))+'°'};
+  if(L==='precip')return{grad:grad,lo:'0',hi:nf(b)+' '+t('mm')};
+  if(L==='wind')return{grad:grad,lo:'0',hi:state.u.wind==='kmh'?nf(b*3.6)+' '+t('u_kmh'):nf(b)+' '+t('u_ms')};
+  return{grad:grad,lo:'0',hi:nf(b)};
+}
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function vMap(){
+  const base=D('tashkent');if(!base)return loadingHtml();
+  const L=state.layer,k=state.mapDay,dl=base.daily;
+  const infos={};CITIES.forEach(c=>{infos[c.id]=mapInfo(c.id);});
+  const dayItems=[[-1,t('d_now')],[0,cap(t('today_w'))],[1,cap(t('tom_w'))],[2,t('wd_s')[dparts(dl[2].dt).wd]],[3,t('wd_s')[dparts(dl[3].dt).wd]],[4,t('wd_s')[dparts(dl[4].dt).wd]]];
+  let s='<svg viewBox="0 0 '+MAPW+' '+MAPH+'" role="img" aria-label="'+esc(t('map_t'))+'">';
+  for(let lo=56;lo<=72;lo+=2){const x=(lo-55.5)*50;s+='<line class="grat" x1="'+x+'" x2="'+x+'" y1="8" y2="'+(MAPH-22)+'"/><text class="ax" x="'+x+'" y="'+(MAPH-6)+'" text-anchor="middle">'+lo+'°E</text>';}
+  for(let la=37;la<=43;la+=1){const y=(43.4-la)*66.2;s+='<line class="grat" x1="30" x2="'+(MAPW-8)+'" y1="'+y.toFixed(1)+'" y2="'+y.toFixed(1)+'"/><text class="ax" x="4" y="'+(y+4).toFixed(1)+'">'+la+'°N</text>';}
+  const order=MAPPTS.slice().sort((a,b)=>(a.id===state.city)-(b.id===state.city));
+  order.forEach(p=>{
+    const c=byId[p.id],inf=infos[p.id],moved=Math.hypot(p.x-p.ox,p.y-p.oy)>4,sel=p.id===state.city;
+    s+='<g class="mk" data-act="city" data-city="'+p.id+'" tabindex="0" role="button" aria-label="'+esc(cname(c)+' '+inf.txt)+'">';
+    if(moved)s+='<line x1="'+p.ox.toFixed(1)+'" y1="'+p.oy.toFixed(1)+'" x2="'+p.x.toFixed(1)+'" y2="'+p.y.toFixed(1)+'" stroke="var(--ink-2)" stroke-width="1"/><circle cx="'+p.ox.toFixed(1)+'" cy="'+p.oy.toFixed(1)+'" r="2.6" fill="var(--ink)"/>';
+    if(sel)s+='<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="21" fill="none" stroke="var(--ink)" stroke-width="2.5"/>';
+    s+='<circle class="b" cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="16" fill="'+inf.col+'" stroke="var(--panel)" stroke-width="2"/>'
+      +'<text x="'+p.x.toFixed(1)+'" y="'+(p.y+4.2).toFixed(1)+'" fill="'+onCol(inf.col)+'">'+esc(inf.txt)+'</text>'
+      +'<text class="nm" x="'+p.x.toFixed(1)+'" y="'+(p.y+31).toFixed(1)+'">'+esc(cname(c))+'</text></g>';
+  });
+  s+='</svg>';
+  const lg=legendFor(L);
+  const ranked=CITIES.slice().sort((a,b)=>(infos[b.id].v==null?-1e9:infos[b.id].v)-(infos[a.id].v==null?-1e9:infos[a.id].v));
+  const unitTxt=L==='temp'?'°':L==='precip'?' '+t('mm'):L==='wind'?' '+(state.u.wind==='kmh'?t('u_kmh'):t('u_ms')):'';
+  const d=D(state.city),c=byId[state.city];
+  return '<div class="pagehead"><h2>'+esc(t('map_t'))+'</h2><div class="row">'
+   +seg('layer',[['temp',t('l_temp')],['precip',t('l_precip')],['wind',t('l_wind')],['uv',t('l_uv')],['aqi',t('l_aqi')]],L)
+   +(L==='aqi'?'':seg('mapday',dayItems,k))+'</div></div>'
+   +'<div class="maplay"><section class="card"><div class="mapsvg">'+s+'</div><div class="legbar" style="background:'+lg.grad+'"></div><div class="legnum"><span>'+esc(lg.lo)+'</span><span>'+esc(lg.hi)+'</span></div><p class="muted small" style="margin-top:8px">'+esc(t('map_n'))+'</p></section>'
+   +'<section class="card rank"><h3>'+esc(t('rank'))+'</h3>'+ranked.map(x=>'<button class="rk" type="button" data-act="city" data-city="'+x.id+'" aria-current="'+(x.id===state.city)+'"><span class="dot" style="background:'+infos[x.id].col+'"></span><span>'+esc(cname(x))+'</span><em>'+esc(infos[x.id].txt+unitTxt)+'</em></button>').join('')
+   +(d?'<button class="btn pri" type="button" data-act="tab" data-v="today" style="margin-top:8px;justify-content:center">'+esc(t('more'))+': '+esc(cname(c))+'</button>':'')+'</section></div>';
+}
+
+/* ---------- Compare ---------- */
+function vCompare(){
+  const days=(D('tashkent')||{}).daily;if(!days)return loadingHtml();
+  const M=state.cmpMetric,sel=state.cmp.filter(x=>D(x)),cols=['var(--s1)','var(--s2)','var(--s3)','var(--s4)'];
+  const val=(id,i)=>{const x=D(id).daily[i];return M==='tmax'?cv(x.tmax):M==='tmin'?cv(x.tmin):M==='psum'?x.psum:(state.u.wind==='kmh'?x.wind*3.6:x.wind);};
+  const isT=M==='tmax'||M==='tmin';
+  const fmt=v=>isT?nf(v)+'°':M==='psum'?nf(v,1):nf(v,state.u.wind==='kmh'?0:1);
+  const o={n:days.length,h:300,minStep:48,label:t('cmp_t'),zero:M==='psum'||M==='wind',labels:days.map(x=>t('wd_s')[dparts(x.dt).wd]+' '+dparts(x.dt).d),
+    series:sel.map((id,j)=>({v:days.map((x,i)=>val(id,i)),c:cols[j%4]})),yfmt:v=>isT?nf(v)+'°':nf(v),
+    legend:sel.map((id,j)=>'<span><i style="background:'+cols[j%4]+'"></i>'+esc(cname(byId[id]))+'</span>').join(''),
+    tip:i=>'<b>'+esc(fday(days[i].dt,true))+'</b>'+sel.map(id=>esc(cname(byId[id]))+': '+fmt(val(id,i))).join('<br>')};
+  let h='<div class="pagehead"><h2>'+esc(t('cmp_t'))+'</h2>'+seg('cmpmetric',[['tmax',t('c_tmax')],['tmin',t('c_tmin')],['psum',t('c_psum')+', '+t('mm')],['wind',t('c_wind')]],M)+'</div>';
+  h+='<section class="card"><h3>'+esc(t('cmp_pick'))+'</h3><div class="row">'+CITIES.map(c=>'<button class="btn" type="button" data-act="cmpcity" data-city="'+c.id+'" aria-pressed="'+(state.cmp.indexOf(c.id)>=0)+'">'+esc(cname(c))+'</button>').join('')+'</div></section>';
+  h+='<section class="sec card">'+chartHost('chCmp',o)+'</section>';
+  h+='<section class="sec card"><div class="tblw"><table><thead><tr><th></th>'+days.map(x=>'<th>'+esc(t('wd_s')[dparts(x.dt).wd])+' '+dparts(x.dt).d+'</th>').join('')+'</tr></thead><tbody>'
+   +sel.map(id=>'<tr><td>'+esc(cname(byId[id]))+'</td>'+days.map((x,i)=>{const v=val(id,i);const bg=isT?' style="background:color-mix(in srgb,'+tcol(M==='tmax'?D(id).daily[i].tmax:D(id).daily[i].tmin)+' 32%,transparent)"':'';return '<td'+bg+'>'+fmt(v)+'</td>';}).join('')+'</tr>').join('')+'</tbody></table></div></section>';
+  return h;
+}
+
+/* ---------- Air ---------- */
+function vAir(){
+  const c=byId[state.city],d=D(c.id);if(!d)return loadingHtml();
+  const a=d.air;
+  let h='<div class="pagehead"><h2>'+esc(t('air_t'))+' · '+esc(cname(c))+'</h2></div>';
+  if(!a)h+='<section class="card"><p>'+esc(t('aqi_none'))+'</p></section>';
+  else{
+    const ai=aqiIdx(a.aqi),col=AQC[ai],pos=(ai+clamp((a.aqi-AQB[ai])/(AQB[ai+1]-AQB[ai]),0,1))/6*100;
+    const grad='linear-gradient(90deg,'+AQC.map((x,i)=>x+' '+(i/6*100).toFixed(1)+'%,'+x+' '+((i+1)/6*100).toFixed(1)+'%').join(',')+')';
+    const r25=a.pm25/15,r10=a.pm10/45;
+    h+='<section class="card"><div class="row" style="gap:18px;align-items:center"><div style="font:600 64px/1 var(--fd);letter-spacing:-.03em">'+nf(a.aqi)+'</div><div>'+pill(t('aq'+(ai+1)),col)+'<p style="margin-top:8px;max-width:60ch">'+esc(t('av'+(ai+1)))+'</p></div></div>'
+     +'<div class="scale" style="background:'+grad+'"><i style="left:'+pos.toFixed(1)+'%"></i></div><p class="muted small" style="margin-top:12px">'+esc(t('air_note'))+'</p></section>'
+     +'<div class="tiles"><div class="tile"><h3>'+esc(t('pm25'))+'</h3><div class="v">'+nf(a.pm25,1)+'<small>µg/m³</small></div><p>'+(r25>=1?esc(t('who',nf(r25,1))):'≤ 15 µg/m³')+'</p></div>'
+     +'<div class="tile"><h3>'+esc(t('pm10'))+'</h3><div class="v">'+nf(a.pm10,1)+'<small>µg/m³</small></div><p>'+(r10>=1?esc(t('who',nf(r10,1))):'≤ 45 µg/m³')+'</p></div></div>';
+  }
+  const list=CITIES.filter(x=>D(x.id)&&D(x.id).air).sort((x,y)=>D(x.id).air.aqi-D(y.id).air.aqi);
+  h+='<section class="sec card rank"><h3>'+esc(t('air_rank'))+'</h3>'+list.map(x=>{const v=D(x.id).air.aqi,cc=AQC[aqiIdx(v)];return '<button class="rk" type="button" data-act="city" data-city="'+x.id+'" aria-current="'+(x.id===state.city)+'"><span class="dot" style="background:'+cc+'"></span><span>'+esc(cname(x))+'<div class="bar"><i style="width:'+clamp(v/250*100,3,100).toFixed(0)+'%;background:'+cc+'"></i></div></span><em>'+nf(v)+'</em></button>';}).join('')+'</section>';
+  return h;
+}
+
+/* ---------- Cities ---------- */
+function cityCard(c){
+  const d=D(c.id),on=state.favs.indexOf(c.id)>=0;
+  return '<div class="cwrap"><button class="ccard" type="button" data-act="city" data-city="'+c.id+'" data-go="1"><div class="top2"><h3>'+esc(cname(c))+'</h3>'+(d?ico(kindOf(d.cur.code),d.cur.day,36):'')+'</div><div class="muted small">'+esc(rname(c))+'</div>'
+   +(d?'<div class="t">'+tt(d.cur.t)+'</div><div class="muted small">'+esc(t('ctop',tt(d.daily[0].tmax),tt(d.daily[0].tmin)))+'</div><div>'+(d.air?pill('AQI '+nf(d.air.aqi),AQC[aqiIdx(d.air.aqi)]):'')+'</div>':'')
+   +'</button><button class="fav" type="button" data-act="fav" data-city="'+c.id+'" aria-pressed="'+on+'" aria-label="'+esc(on?t('fav_del'):t('fav_add'))+'"><span class="star">'+sv(on?STAR.replace('<path','<path fill="currentColor"'):STAR,20)+'</span></button></div>';
+}
+function vCities(){
+  if(!D('tashkent'))return loadingHtml();
+  const regs=[];CITIES.forEach(c=>{if(regs.indexOf(c.region)<0)regs.push(c.region);});
+  let list=CITIES.filter(c=>state.ctRegion==='all'||c.region===state.ctRegion);
+  const k=state.ctSort,val={warm:id=>-D(id).cur.t,cold:id=>D(id).cur.t,rain:id=>-D(id).daily[0].psum,air:id=>D(id).air?D(id).air.aqi:9999};
+  if(k==='name')list.sort((a,b)=>cname(a).localeCompare(cname(b),state.lang));else list.sort((a,b)=>val[k](a.id)-val[k](b.id));
+  list=list.sort((a,b)=>(state.favs.indexOf(b.id)>=0)-(state.favs.indexOf(a.id)>=0));
+  return '<div class="pagehead"><h2>'+esc(t('ct_t'))+'</h2><div class="row"><label class="muted small" for="ctRegion">'+esc(t('ct_reg'))+'</label><select id="ctRegion"><option value="all">'+esc(t('ct_all'))+'</option>'
+   +regs.map(r=>'<option value="'+r+'"'+(state.ctRegion===r?' selected':'')+'>'+esc(REG[r][state.lang])+'</option>').join('')+'</select>'
+   +'<label class="muted small" for="ctSort">'+esc(t('ct_sort'))+'</label><select id="ctSort">'+[['name','so_name'],['warm','so_warm'],['cold','so_cold'],['rain','so_rain'],['air','so_air']].map(o=>'<option value="'+o[0]+'"'+(k===o[0]?' selected':'')+'>'+esc(t(o[1]))+'</option>').join('')+'</select></div></div>'
+   +(list.length?'<div class="grid">'+list.map(cityCard).join('')+'</div>':'<p class="muted">'+esc(t('ct_empty'))+'</p>');
+}
+
+/* ---------- Assistant ---------- */
+const QIDS=['umb','walk','tom','rain','trend','warm','cold','air','wknd'];
+function walkText(d){const wb=walkBest(d);return wb?t('wk1',hh(wb.tm)+(wb.tm.slice(0,10)!==d.cur.tm.slice(0,10)?' ('+t('tom_w')+')':''),tt(wb.t)+', '+wtxt(wb.code).toLowerCase()):t('wk0');}
+function weekendIdx(d){
+  const wk=i=>{const w=dparts(d.daily[i].dt).wd;return w===6||w===0;};
+  let first=-1;for(let i=0;i<d.daily.length;i++){if(wk(i)){first=i;break;}}
+  if(first<0)return[];
+  const r=[first];if(first+1<d.daily.length&&wk(first+1))r.push(first+1);return r;
+}
+function answer(q){
+  const c=byId[state.city],d=D(c.id),nm=cname(c);
+  if(!d)return t('loading');
+  const all=CITIES.filter(x=>D(x.id));
+  if(q==='umb')return umbText(d,d.now,d.now+12);
+  if(q==='walk')return walkText(d);
+  if(q==='tom'){const x=d.daily[1];return t('a_tom',nm,tt(x.tmin),tt(x.tmax),t(wearKey((x.tmin+x.tmax)/2)));}
+  if(q==='rain'){
+    const ds=d.daily.filter(x=>x.psum>=1||x.pop>=60);
+    return ds.length?t('a_rain',nm,ds.map(x=>fday(x.dt)+' ('+nf(x.psum,1)+' '+t('mm')+')').join(', ')):t('a_norain',nm);
+  }
+  if(q==='trend'){
+    let w=0,k=0;d.daily.forEach((x,i)=>{if(x.tmax>d.daily[w].tmax)w=i;if(x.tmax<d.daily[k].tmax)k=i;});
+    return t('a_trend',nm,fday(d.daily[w].dt),tt(d.daily[w].tmax),fday(d.daily[k].dt),tt(d.daily[k].tmax));
+  }
+  if(q==='warm'||q==='cold'){
+    const s=all.slice().sort((a,b)=>q==='warm'?D(b.id).cur.t-D(a.id).cur.t:D(a.id).cur.t-D(b.id).cur.t).slice(0,3);
+    return t(q==='warm'?'a_warm':'a_cold',s.map(x=>cname(x)+' ('+tt(D(x.id).cur.t)+')').join(', '));
+  }
+  if(q==='air'){
+    const s=all.filter(x=>D(x.id).air).sort((a,b)=>D(a.id).air.aqi-D(b.id).air.aqi);
+    if(!s.length)return t('aqi_none');
+    const f=x=>cname(x)+' (AQI '+nf(D(x.id).air.aqi)+')';
+    return t('a_air',f(s[0]),f(s[s.length-1]));
+  }
+  if(q==='wknd'){
+    const idx=weekendIdx(d);if(!idx.length)return t('a_wknd0');
+    const sc=all.map(x=>{let s=0,tm=0;idx.forEach(i=>{const y=D(x.id).daily[i];s-=Math.abs(y.tmax-24)+y.psum*.8+y.wind*.3;tm+=y.tmax;});return{x:x,s:s,tm:tm/idx.length};}).sort((a,b)=>b.s-a.s).slice(0,3);
+    return t('a_wknd',idx.map(i=>fday(d.daily[i].dt)).join(', '),sc.map(r=>cname(r.x)+' ('+tt(r.tm)+')').join(', '));
+  }
+  return t('as_unk');
+}
+function intent(s){
+  s=s.toLowerCase();
+  if(/выходн|dam olish|weekend|shanba|yakshanba|saturday|sunday/.test(s))return 'wknd';
+  if(/завтра|ertaga|tomorrow/.test(s))return 'tom';
+  if(/гуля|прогул|sayr|walk|бег|run/.test(s))return 'walk';
+  if(/воздух|havo|aqi|смог|smog|air/.test(s))return 'air';
+  if(/зонт|umbrella|soyabon/.test(s))return 'umb';
+  if(/дожд|rain|yomg|снег|snow|qor|осадк/.test(s))return 'rain';
+  if(/холод|мороз|sovuq|cold/.test(s))return 'cold';
+  if(/(когда|qachon|when)/.test(s)&&/(тепл|жар|issiq|warm|hot)/.test(s))return 'trend';
+  if(/тепл|жар|issiq|warm|hot/.test(s))return 'warm';
+  return null;
+}
+function ask(q,label){
+  state.asks.unshift({q:label,a:q?answer(q):t('as_unk')});state.asks=state.asks.slice(0,8);
+  renderView();
+}
+function vAssistant(){
+  const c=byId[state.city];
+  return '<div class="pagehead"><h2>'+esc(t('as_t'))+'</h2><span class="pill" style="background:var(--panel-2)">'+esc(t('as_city',cname(c)))+'</span></div>'
+   +'<section class="card"><p class="muted" style="margin-bottom:12px">'+esc(t('as_h'))+'</p><div class="qs">'+QIDS.map(q=>'<button class="btn" type="button" data-act="ask" data-q="'+q+'">'+esc(t('q_'+q))+'</button>').join('')+'</div>'
+   +'<div class="ask"><input id="askIn" type="text" autocomplete="off" placeholder="'+esc(t('as_ph'))+'" aria-label="'+esc(t('as_ph'))+'"><button class="btn pri" type="button" data-act="asktext">'+esc(t('as_go'))+'</button></div>'
+   +state.asks.map(x=>'<div class="msg"><div class="q">'+esc(x.q)+'</div><div class="a">'+esc(x.a)+'</div></div>').join('')+'</section>';
+}
+
+/* ---------- chrome ---------- */
+function renderChrome(){
+  document.documentElement.lang=state.lang==='uz'?'uz':state.lang;
+  $('#brandName').textContent=t('app');$('#brandSub').textContent=t('sub');
+  const q=$('#q');q.placeholder=t('search');q.setAttribute('aria-label',t('search'));
+  $('#langSeg').innerHTML=LANGS.map(l=>'<button type="button" data-act="lang" data-v="'+l+'" aria-pressed="'+(l===state.lang)+'">'+l.toUpperCase()+'</button>').join('');
+  const tb=$('#themeBtn');tb.setAttribute('aria-label',t('theme_btn'));tb.setAttribute('title',t('theme_btn'));
+  tb.innerHTML=sv('<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',20);
+  const sb=$('#setBtn');sb.setAttribute('aria-label',t('set'));sb.setAttribute('title',t('set'));
+  sb.innerHTML=sv('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',20);
+}
+function renderTabs(){
+  const el=$('#tabs'),sl=el.scrollLeft;
+  el.innerHTML=TABS.map(k=>'<button class="tab" role="tab" type="button" data-act="tab" data-v="'+k+'" aria-selected="'+(k===state.tab)+'">'+sv(TAB_ICONS[k],17)+esc(t('n_'+k))+'</button>').join('');
+  el.scrollLeft=sl;
+}
+function renderStrip(){
+  const el=$('#strip'),sl=el.scrollLeft;
+  if(state.tab==='agro'){el.innerHTML='';return;}
+  const order=state.favs.concat(CITIES.map(c=>c.id).filter(id=>state.favs.indexOf(id)<0));
+  el.innerHTML=order.map(id=>{
+    const c=byId[id],d=D(id),on=state.favs.indexOf(id)>=0;
+    return '<button class="chip" type="button" data-act="city" data-city="'+id+'" aria-current="'+(id===state.city)+'">'+(d?ico(kindOf(d.cur.code),d.cur.day,28):'')
+     +'<span><b>'+(on?'<span class="star">'+sv(STAR.replace('<path','<path fill="currentColor"'),11)+'</span> ':'')+esc(cname(c))+'</b><small>'+(d?tt(d.cur.t):'…')+'</small></span></button>';
+  }).join('');
+  el.scrollLeft=sl;
+}
+function renderBanner(){
+  $('#banner').innerHTML=state.demo&&!state.loading&&state.tab!=='agro'?'<div class="banner" role="alert"><div><b>'+esc(t('demo_t'))+'</b>'+esc(t('demo_x'))+'</div><button class="btn pri" type="button" data-act="retry">'+esc(t('retry'))+'</button></div>':'';
+}
+function renderFoot(){
+  if(state.tab==='agro'){$('#foot').innerHTML='';return;}
+  const f=state.fetchedAt?pad(state.fetchedAt.getUTCHours())+':'+pad(state.fetchedAt.getUTCMinutes()):null;
+  $('#foot').innerHTML='<span>'+esc(t('src'))+'</span><span>'+(f&&!state.demo?esc(t('updated',f))+' · ':'')+'<a href="https://open-meteo.com/" target="_blank" rel="noopener">open-meteo.com</a></span>';
+}
+function renderSettings(){
+  $('#setPop').innerHTML='<div><label>'+esc(t('s_temp'))+'</label>'+seg('unit',[['c','°C'],['f','°F']],state.u.temp,'temp')+'</div>'
+   +'<div><label>'+esc(t('s_wind'))+'</label>'+seg('unit',[['ms',t('u_ms')],['kmh',t('u_kmh')]],state.u.wind,'wind')+'</div>'
+   +'<div><label>'+esc(t('s_press'))+'</label>'+seg('unit',[['mmhg',t('u_mmhg')],['hpa',t('u_hpa')]],state.u.press,'press')+'</div>'
+   +'<div><label>'+esc(t('s_theme'))+'</label>'+seg('theme',[['auto',t('th_auto')],['light',t('th_light')],['dark',t('th_dark')]],state.theme)+'</div>';
+}
+function renderView(){
+  const v=$('#view');pending.length=0;
+  const fns={today:vToday,hourly:vHourly,daily:vDaily,map:vMap,compare:vCompare,air:vAir,cities:vCities,agro:vAgro,assistant:vAssistant};
+  v.innerHTML=(state.loading&&!Object.keys(state.data).length)?loadingHtml():fns[state.tab]();
+  pending.splice(0).forEach(p=>mountChart($('#'+p.id),p.o));
+  if(state.tab==='agro')agMount();
+}
+function render(){renderChrome();renderTabs();renderStrip();renderBanner();renderView();renderSettings();renderFoot();}
+
+/* ---------- actions ---------- */
+let toastTimer=0;
+function toast(m){const el=$('#toast');el.textContent=m;el.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>{el.hidden=true;},2800);}
+function applyTheme(){const r=document.documentElement;if(state.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',state.theme);}
+function setTheme(v){state.theme=v;store.set('theme',v);applyTheme();renderSettings();}
+function setTab(v){
+  if(TABS.indexOf(v)<0)return;
+  state.tab=v;try{if(location.hash!=='#'+v)location.hash=v;}catch(e){}
+  render();if(window.scrollY>240)window.scrollTo(0,0);
+}
+function selectCity(id,go){
+  if(!byId[id])return;
+  state.city=id;store.set('city',id);
+  if(go&&['cities','map','compare'].indexOf(state.tab)>=0)setTab('today');else render();
+}
+function toggleFav(id){
+  const i=state.favs.indexOf(id);if(i>=0)state.favs.splice(i,1);else state.favs.push(id);
+  store.set('favs',state.favs);render();
+}
+function fallbackCopy(s){
+  try{const ta=document.createElement('textarea');ta.value=s;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');document.body.removeChild(ta);toast(ok?t('copied'):t('copyfail'));}
+  catch(e){toast(t('copyfail'));}
+}
+function copySummary(){
+  const c=byId[state.city],d=D(c.id);if(!d)return;
+  const s=t('sum_f',cname(c),tt(d.cur.t),wtxt(d.cur.code).toLowerCase(),tt(d.cur.feels),tt(d.daily[0].tmax),tt(d.daily[0].tmin),wv(d.cur.wind),Math.round(d.cur.hum));
+  try{navigator.clipboard.writeText(s).then(()=>toast(t('copied')),()=>fallbackCopy(s));}catch(e){fallbackCopy(s);}
+}
+async function refresh(silent){
+  if(state.loading)return;
+  if(!silent)toast(t('refreshing'));
+  try{state.data=await loadLive();state.demo=false;state.fetchedAt=tashkentNow();if(!silent)toast(t('refreshed'));}
+  catch(e){if(!Object.keys(state.data).length){state.data=makeDemo();state.demo=true;}if(!silent)toast(t('refail'));}
+  render();
+}
+async function load(){
+  state.loading=true;render();
+  try{state.data=await loadLive();state.demo=false;state.fetchedAt=tashkentNow();}
+  catch(e){state.data=makeDemo();state.demo=true;state.fetchedAt=null;}
+  state.loading=false;render();
+}
+
+/* ---------- search ---------- */
+const nz=s=>s.toLowerCase().replace(/ё/g,'е').replace(/[ʻʼ’‘'`]/g,'');
+let sIdx=-1;
+function matches(q){q=nz(q.trim());if(!q)return[];return CITIES.filter(c=>[c.ru,c.uz,c.en,REG[c.region].ru,REG[c.region].uz,REG[c.region].en].some(s=>nz(s).indexOf(q)>=0)).slice(0,8);}
+function hideSugg(){const el=$('#sugg');el.hidden=true;$('#q').setAttribute('aria-expanded','false');sIdx=-1;}
+function showSugg(){
+  const v=$('#q').value,m=matches(v),el=$('#sugg');
+  if(!v.trim()){hideSugg();return;}
+  el.innerHTML=m.length?m.map((c,i)=>'<button type="button" role="option" data-act="city" data-city="'+c.id+'" data-go="1" data-clear="1" aria-selected="'+(i===sIdx)+'"><span>'+esc(cname(c))+'</span><small>'+esc(rname(c))+'</small></button>').join(''):'<p>'+esc(t('no_res'))+'</p>';
+  el.hidden=false;$('#q').setAttribute('aria-expanded','true');
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const tg=e.target;
+  if(!tg.closest('.search'))hideSugg();
+  if(!tg.closest('#setPop')&&!tg.closest('#setBtn')){$('#setPop').hidden=true;$('#setBtn').setAttribute('aria-expanded','false');}
+  const el=tg.closest('[data-act]');if(!el)return;
+  const a=el.dataset.act,v=el.dataset.v;
+  if(a==='tab')setTab(v);
+  else if(a==='city'){if(el.dataset.clear){$('#q').value='';hideSugg();}selectCity(el.dataset.city,el.dataset.go==='1');}
+  else if(a==='fav'){e.stopPropagation();toggleFav(el.dataset.city);}
+  else if(a==='copy')copySummary();
+  else if(a==='refresh')refresh(false);
+  else if(a==='retry')refresh(false);
+  else if(a==='lang'){state.lang=v;store.set('lang',v);state.asks=[];render();}
+  else if(a==='unit'){state.u[el.dataset.k]=v;store.set('units',state.u);render();}
+  else if(a==='theme')setTheme(v);
+  else if(a==='layer'){state.layer=v;renderView();}
+  else if(a==='mapday'){state.mapDay=+v;renderView();}
+  else if(a==='hrrange'){state.hrRange=+v;renderView();}
+  else if(a==='hrmetric'){state.hrMetric=v;renderView();}
+  else if(a==='cmpmetric'){state.cmpMetric=v;renderView();}
+  else if(a==='cmpcity'){
+    const id=el.dataset.city,i=state.cmp.indexOf(id);
+    if(i>=0){if(state.cmp.length>1)state.cmp.splice(i,1);}
+    else if(state.cmp.length>=4){toast(t('cmp_max4'));return;}
+    else state.cmp.push(id);
+    store.set('cmp',state.cmp);renderView();
+  }
+  else if(a==='ask')ask(el.dataset.q,t('q_'+el.dataset.q));
+  else if(a==='asktext'){const inp=$('#askIn'),s=inp.value.trim();if(s)ask(intent(s),s);}
+  else if(a==='dayopen'){const p=el.parentElement,o=!p.classList.contains('open');p.classList.toggle('open',o);el.setAttribute('aria-expanded',String(o));}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target.id==='askIn'){const s=e.target.value.trim();if(s)ask(intent(s),s);return;}
+  if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('mk')){e.preventDefault();selectCity(e.target.dataset.city,false);return;}
+  if(e.key==='Escape'){hideSugg();$('#setPop').hidden=true;$('#setBtn').setAttribute('aria-expanded','false');}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='ctRegion'){state.ctRegion=e.target.value;renderView();}
+  else if(e.target.id==='ctSort'){state.ctSort=e.target.value;renderView();}
+});
+$('#q').addEventListener('input',()=>{sIdx=-1;showSugg();});
+$('#q').addEventListener('focus',showSugg);
+$('#q').addEventListener('keydown',e=>{
+  const bs=[].slice.call($('#sugg').querySelectorAll('button'));
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    if(!bs.length)return;e.preventDefault();
+    sIdx=(sIdx+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;
+    bs.forEach((b,i)=>b.setAttribute('aria-selected',String(i===sIdx)));
+  }else if(e.key==='Enter'){
+    const b=bs[sIdx>=0?sIdx:0];
+    if(b){e.preventDefault();$('#q').value='';hideSugg();selectCity(b.dataset.city,true);}
+  }
+});
+$('#setBtn').addEventListener('click',()=>{const p=$('#setPop');p.hidden=!p.hidden;$('#setBtn').setAttribute('aria-expanded',String(!p.hidden));});
+$('#themeBtn').addEventListener('click',()=>{
+  const dark=state.theme==='dark'||(state.theme==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+  setTheme(dark?'light':'dark');
+});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(TABS.indexOf(h)>=0&&h!==state.tab){state.tab=h;render();}});
+let lastW=window.innerWidth,rz=0;
+window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(window.innerWidth!==lastW){lastW=window.innerWidth;renderView();}},200);});
+setInterval(()=>{if(!document.hidden&&!state.demo&&!state.loading)refresh(true);},15*60*1000);
+
+/* ---------- boot ---------- */
+applyTheme();
+(function(){const h=location.hash.slice(1);if(TABS.indexOf(h)>=0)state.tab=h;})();
+load();
+</script>
+
+</body></html>
